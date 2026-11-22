@@ -1,0 +1,26 @@
+# secrets
+.env
+.env.*
+!.env.example
+!.env.bot.example
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+# node / web
+node_modules/
+web/dist/
+web/dev-dist/
+playwright-report/
+test-results/
+# os / editors
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.log
