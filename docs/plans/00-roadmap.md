@@ -32,7 +32,7 @@ M6 Web foundation (parallel, MSW mocks) ─► M7 Web core screens ◄───�
 ---
 
 ## M0 — Foundation  →  release `v0.1.0`
-- [ ] F-01 Repo hygiene & Makefile —
+- [x] F-01 Repo hygiene & Makefile — scaffold landed in `46ef9f7`; completed here: `web/.next/` ignored, `API_ORIGIN` documented in `.env.example`, dev section added to README
 - [ ] F-02 Backend skeleton & architecture guards —
 - [ ] F-03 Web skeleton —
 - [ ] F-04 Local dev stack —
