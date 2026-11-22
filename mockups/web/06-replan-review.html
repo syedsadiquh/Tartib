@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Re-plan review</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0A0C11;--panel:#11141C;--panel2:#151925;--line:#1D2230;--tx:#E7EBF3;--mut:#7A8699;--dim:#4A5468;
+        --prayer:#E4B363;--habit:#45C8B8;--high:#A78BFA;--med:#5B9BF8;--low:#6B7A90;--ok:#3DD68C;--warn:#E9A23B;--del:#F07178}
+  body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;
+       font-size:13px;width:1440px;height:900px;overflow:hidden;position:relative;-webkit-font-smoothing:antialiased}
+
+  /* dimmed week behind */
+  .bg{position:absolute;inset:0;display:grid;grid-template-columns:52px repeat(7,1fr);
+      grid-template-rows:repeat(18,46px);opacity:.22;filter:saturate(.5)}
+  .bg .hr{grid-column:1;font-size:9.5px;color:var(--dim);text-align:right;padding-right:8px}
+  .b{grid-row:auto;border-radius:5px;margin:0 3px;border-left:2px solid #333}
+  .b.p{background:rgba(228,179,99,.4);border-color:var(--prayer)}
+  .b.o{background:#20293a;border-color:#333}
+  .b.h{background:rgba(167,139,250,.4);border-color:var(--high)}
+  .dim2{position:absolute;inset:0;background:rgba(4,6,9,.72);backdrop-filter:blur(3px)}
+
+  /* modal */
+  .modal{position:absolute;left:44px;top:52px;width:742px;background:var(--panel);border:1px solid #263043;
+         border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.7);overflow:hidden}
+  .mh{padding:16px 20px 13px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:12px}
+  .mh .ic{width:32px;height:32px;border-radius:9px;background:rgba(167,139,250,.14);border:1px solid rgba(167,139,250,.3);
+          display:grid;place-items:center;color:var(--high);font-size:15px}
+  .mh h3{font-size:15px;font-weight:650;letter-spacing:-.2px}
+  .mh .s{font-size:11px;color:var(--mut);margin-top:2px}
+  .mh .s b{color:#B9C6DA;font-weight:600}
+  .auto{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:10.5px;color:var(--mut)}
+  .sw{width:30px;height:17px;border-radius:9px;background:#2A3446;position:relative}
+  .sw i{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#7A8699}
+  .sw.on{background:rgba(61,214,140,.28)}.sw.on i{left:15px;background:var(--ok)}
+
+  .rows{padding:6px 0}
+  .row{display:flex;gap:12px;padding:11px 20px;border-bottom:1px solid #161B26;align-items:flex-start}
+  .row:last-child{border:0}
+  .row .ck{width:15px;height:15px;border-radius:4px;border:1.5px solid #37425A;margin-top:2px;flex-shrink:0;
+           display:grid;place-items:center;font-size:10px;color:#0A0C11}
+  .row .ck.on{background:var(--ok);border-color:var(--ok)}
+  .tag{font-size:8.5px;font-weight:800;letter-spacing:.7px;padding:2px 6px;border-radius:4px;text-transform:uppercase;flex-shrink:0;margin-top:1px}
+  .t-new{background:rgba(61,214,140,.15);color:#6FE3AB}
+  .t-mv{background:rgba(91,155,248,.15);color:#8FBDF9}
+  .t-fl{background:rgba(233,162,59,.15);color:#F0BE71}
+  .rbody{flex:1;min-width:0}
+  .rbody .ttl{font-size:12.5px;font-weight:620;margin-bottom:3px}
+  .rbody .when{font-size:11px;color:#9FB0C6;margin-bottom:3px}
+  .rbody .when s{color:#5A6venue}
+  .rbody .why{font-size:10.5px;color:var(--dim);line-height:1.45}
+  .rbody .why b{color:#7E90A8;font-weight:600}
+  .arrow{color:#3E4A60;margin:0 5px}
+
+  .mf{padding:13px 20px;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;
+      background:#0E1219}
+  .sum{font-size:10.5px;color:var(--mut)}
+  .sum b{color:var(--tx)}
+  .mf .sp{margin-left:auto;display:flex;gap:8px}
+  .btn{padding:9px 15px;border-radius:9px;font-size:12px;font-weight:700}
+  .g{background:var(--panel2);color:var(--mut);border:1px solid var(--line)}
+  .p{background:linear-gradient(150deg,#A78BFA,#7C5CE0);color:#120A24}
+
+  /* task drawer */
+  .drawer{position:absolute;right:36px;top:52px;width:400px;background:var(--panel);border:1px solid #263043;
+          border-radius:16px;box-shadow:0 30px 80px rgba(0,0,0,.7);overflow:hidden}
+  .dh{padding:16px 18px 12px;border-bottom:1px solid var(--line)}
+  .dh h3{font-size:14.5px;font-weight:650;letter-spacing:-.2px;line-height:1.35}
+  .meta{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+  .mp{font-size:9px;padding:2.5px 7px;border-radius:5px;font-weight:750;letter-spacing:.3px}
+  .mp.hi{background:rgba(167,139,250,.16);color:#C3AEFD}
+  .mp.mi{background:rgba(91,155,248,.14);color:#96BFFA}
+  .mp.gr{background:#1C2331;color:#8B9AB1}
+  .mp.du{background:rgba(233,162,59,.14);color:#EFBB6E}
+
+  .dsec{padding:12px 18px;border-bottom:1px solid #161B26}
+  .dsec .h{font-size:8.5px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);font-weight:800;
+           margin-bottom:8px;display:flex;justify-content:space-between}
+  .dsec .h span{letter-spacing:0;text-transform:none;color:#5E6B80;font-weight:600;font-size:9.5px}
+
+  .sub{display:flex;align-items:center;gap:8px;padding:4px 0}
+  .sub .cb{width:13px;height:13px;border-radius:3.5px;border:1.5px solid #37425A;display:grid;place-items:center;
+           font-size:9px;color:#0A0C11;flex-shrink:0}
+  .sub .cb.done{background:var(--high);border-color:var(--high)}
+  .sub .n{font-size:11.5px;flex:1}
+  .sub.done .n{color:var(--dim);text-decoration:line-through}
+  .sub .w{font-size:9.5px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .bar{height:3px;background:#1B2230;border-radius:2px;margin-top:8px;display:flex;overflow:hidden}
+  .bar i{height:100%}
+
+  .dep{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--mut);padding:3px 0}
+  .dep .ok{color:var(--ok);font-weight:800;font-size:10px}
+  .dep b{color:#C4D0E2;font-weight:600}
+
+  .whybox{background:#101620;border:1px solid #1E2836;border-radius:9px;padding:9px 10px}
+  .wr{display:flex;gap:7px;font-size:10.5px;color:#93A5BC;line-height:1.55;margin-bottom:3px}
+  .wr:last-child{margin:0}
+  .wr b{color:#B9C9DE;font-weight:600}
+  .wr .k{color:#5F7chartboard;flex-shrink:0}
+
+  .acts{padding:12px 18px;display:flex;gap:7px;background:#0E1219}
+  .acts .btn{flex:1;text-align:center;font-size:11px;padding:8px}
+  .pin{background:rgba(228,179,99,.13);color:#EBC98A;border:1px solid rgba(228,179,99,.3)}
+</style></head>
+<body>
+
+<div class="bg">
+  <div class="hr" style="grid-row:1">05</div><div class="hr" style="grid-row:3">07</div>
+  <div class="hr" style="grid-row:5">09</div><div class="hr" style="grid-row:7">11</div>
+  <div class="hr" style="grid-row:9">13</div><div class="hr" style="grid-row:11">15</div>
+  <div class="hr" style="grid-row:13">17</div><div class="hr" style="grid-row:15">19</div>
+  <div class="hr" style="grid-row:17">21</div>
+  <div class="b p" style="grid-column:2;grid-row:1"></div>
+  <div class="b h" style="grid-column:2;grid-row:2/5"></div>
+  <div class="b o" style="grid-column:2;grid-row:6/14"></div>
+  <div class="b p" style="grid-column:2;grid-row:9"></div>
+  <div class="b h" style="grid-column:2;grid-row:16/18"></div>
+  <div class="b h" style="grid-column:3;grid-row:2/5"></div>
+  <div class="b o" style="grid-column:3;grid-row:6/14"></div>
+  <div class="b p" style="grid-column:3;grid-row:13"></div>
+  <div class="b h" style="grid-column:3;grid-row:16/18"></div>
+  <div class="b h" style="grid-column:4;grid-row:2/5"></div>
+  <div class="b o" style="grid-column:4;grid-row:6/14"></div>
+  <div class="b h" style="grid-column:4;grid-row:16/18"></div>
+  <div class="b h" style="grid-column:5;grid-row:2/5"></div>
+  <div class="b o" style="grid-column:5;grid-row:6/14"></div>
+  <div class="b h" style="grid-column:5;grid-row:16/18"></div>
+  <div class="b h" style="grid-column:6;grid-row:2/5"></div>
+  <div class="b o" style="grid-column:6;grid-row:6/13"></div>
+  <div class="b p" style="grid-column:6;grid-row:9"></div>
+  <div class="b h" style="grid-column:6;grid-row:16/18"></div>
+  <div class="b h" style="grid-column:7;grid-row:2/5"></div>
+  <div class="b p" style="grid-column:7;grid-row:9"></div>
+  <div class="b p" style="grid-column:7;grid-row:11"></div>
+  <div class="b h" style="grid-column:7;grid-row:16/18"></div>
+</div>
+<div class="dim2"></div>
+
+<!-- RE-PLAN MODAL -->
+<div class="modal">
+  <div class="mh">
+    <div class="ic">⇄</div>
+    <div>
+      <h3>Re-plan · Sat 22 Nov, 09:41</h3>
+      <div class="s">3 changes proposed · <b>nothing is written until you accept</b></div>
+    </div>
+    <div class="auto"><span class="sw on"><i></i></span>auto-apply safe moves</div>
+  </div>
+
+  <div class="rows">
+    <div class="row">
+      <div class="ck on">✓</div><div class="tag t-new">new</div>
+      <div class="rbody">
+        <div class="ttl">cybersec - W1D5: Scanning</div>
+        <div class="when">→ Sat 18:00 – 20:00 · 2h · 4 units × 30m</div>
+        <div class="why"><b>Why:</b> High effort needs a slot outside 10:00–18:30, after Isha 19:45 leaves 18:00–19:45 free before Maghrib.</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="ck on">✓</div><div class="tag t-mv">moved</div>
+      <div class="rbody">
+        <div class="ttl">Inbox triage</div>
+        <div class="when">Sat 13:15 <span class="arrow">→</span> Sat 12:10 <span style="color:var(--dim)">(−65m)</span></div>
+        <div class="why"><b>Why:</b> Dhuhr occupies 13:00–13:30, and you have a 20m gap after LR1 ends. Low effort fits anywhere.</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="ck on">✓</div><div class="tag t-new">new</div>
+      <div class="rbody">
+        <div class="ttl">system design - DB2: Sharding</div>
+        <div class="when">→ Mon 20:00 – 21:30 · 1h 30m · 3 units</div>
+        <div class="why"><b>Why:</b> deadline Mon 23:59, depends on DB1 (done today). Only Monday evening has 1h 30m of High capacity left.</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="ck" style="border-color:#4A3A1C"></div><div class="tag t-fl">flag</div>
+      <div class="rbody">
+        <div class="ttl">Thursday is over-committed</div>
+        <div class="when">3h of High work · 1h 30m of High capacity</div>
+        <div class="why"><b>Suggestion:</b> push “cybersec W1D3: Perms” to Friday, or drop “Read: Caching notes” to the backlog. <b>I won't choose for you.</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mf">
+    <div class="sum"><b>2 apply</b> · 1 flag ignored · 0 removed</div>
+    <div class="sp">
+      <div class="btn g">Reject all</div>
+      <div class="btn p">Apply 2 changes</div>
+    </div>
+  </div>
+</div>
+
+<!-- TASK DRAWER -->
+<div class="drawer">
+  <div class="dh">
+    <h3>cybersec - W1D5: Scanning &amp; Enumeration</h3>
+    <div class="meta">
+      <span class="mp hi">HIGH</span><span class="mp mi">2h</span>
+      <span class="mp du">due Tue</span><span class="mp gr">cybersec</span><span class="mp gr">4 units</span>
+    </div>
+  </div>
+
+  <div class="dsec">
+    <div class="h">Subtasks <span>weights sum to 120m</span></div>
+    <div class="sub done"><span class="cb done">✓</span><span class="n">Nmap basics</span><span class="w">30m</span></div>
+    <div class="sub"><span class="cb"></span><span class="n">Service detection</span><span class="w">30m</span></div>
+    <div class="sub"><span class="cb"></span><span class="n">OS fingerprinting</span><span class="w">45m</span></div>
+    <div class="sub"><span class="cb"></span><span class="n">Write up notes</span><span class="w">15m</span></div>
+    <div class="bar">
+      <i style="width:25%;background:var(--high)"></i><i style="width:25%;background:#2C3650"></i>
+      <i style="width:37.5%;background:#2C3650"></i><i style="width:12.5%;background:#2C3650"></i>
+    </div>
+  </div>
+
+  <div class="dsec">
+    <div class="h">Depends on</div>
+    <div class="dep"><span class="ok">✓</span><b>W1D4: Recon</b> — completed Thu</div>
+    <div class="dep"><span class="ok">✓</span><b>W1D3: Perms</b> — completed Wed</div>
+  </div>
+
+  <div class="dsec">
+    <div class="h">Why it landed here</div>
+    <div class="whybox">
+      <div class="wr"><span>·</span><div><b>High effort</b> → never inside office hours 10:00–18:30</div></div>
+      <div class="wr"><span>·</span><div><b>Prayers are hard blocks</b> → Asr 15:35, Isha 19:45 removed 45m</div></div>
+      <div class="wr"><span>·</span><div><b>Min chunk 30m</b> → 2h split into 4 units, no orphan 15m</div></div>
+      <div class="wr"><span>·</span><div><b>Buffer 15m</b> after High work, so 20:00 end is honest</div></div>
+    </div>
+  </div>
+
+  <div class="dsec">
+    <div class="h">History <span>moved 3×</span></div>
+    <div class="dep">Today 09:41 — engine → Sat 18:00</div>
+    <div class="dep">Yesterday — you moved it to Sat 20:00 <b style="color:var(--prayer)">(pinned)</b></div>
+    <div class="dep">20 Nov — engine → Mon 19:00</div>
+  </div>
+
+  <div class="acts">
+    <div class="btn pin">Pin time</div>
+    <div class="btn g">Split…</div>
+    <div class="btn g">Skip</div>
+  </div>
+</div>
+
+</body></html>

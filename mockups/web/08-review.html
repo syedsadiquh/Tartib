@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Review</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0A0C11;--panel:#11141C;--p2:#151925;--line:#1D2230;--tx:#E7EBF3;--mut:#7A8699;--dim:#4A5468;
+        --prayer:#E4B363;--habit:#45C8B8;--high:#A78BFA;--med:#5B9BF8;--low:#6B7A90;--ok:#3DD68C;--warn:#E9A23B;--del:#F07178;--fun:#F472B6;--fam:#7DD3A0;--learn:#60A5FA;--arab:#C4B5FD}
+  body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;
+       font-size:13px;width:1440px;height:900px;overflow:hidden;display:flex;-webkit-font-smoothing:antialiased}
+  .rail{width:206px;border-right:1px solid var(--line);padding:16px 11px;display:flex;flex-direction:column;gap:16px;background:var(--panel);flex-shrink:0}
+  .brand{display:flex;align-items:center;gap:9px;padding:0 6px}
+  .mark{width:25px;height:25px;border-radius:7px;background:linear-gradient(145deg,#E4B363,#B9833A);display:grid;place-items:center;font-size:12px;color:#1a1206;font-weight:800}
+  .brand b{font-size:13.5px;font-weight:650}
+  .nav{display:flex;flex-direction:column;gap:1px}
+  .nav a{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;color:var(--mut);font-size:12px;font-weight:500;text-decoration:none}
+  .nav a.on{background:var(--p2);color:var(--tx)}
+  .nav a .ic{width:14px;text-align:center;font-size:11.5px}
+  .nav a .bd{margin-left:auto;font-size:9.5px;background:#2A3242;color:#9FAEC4;padding:1px 5px;border-radius:4px;font-weight:700}
+  .grp{font-size:9px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);padding:0 9px 4px;font-weight:800}
+  .rank{margin-top:auto;border-top:1px solid var(--line);padding-top:10px}
+  .rank .t{font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px}
+  .rank div{font-size:10px;color:#6B7688;padding:2.5px 0;display:flex;gap:6px;align-items:center}
+  .rank div i{width:4px;height:4px;border-radius:50%;background:#2E3849;flex-shrink:0}
+  .rank div.f{color:var(--tx)}.rank div.f i{background:var(--prayer)}
+
+  main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .top{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line)}
+  .top h1{font-size:15px;font-weight:650;letter-spacing:-.3px}
+  .top .s{font-size:10.5px;color:var(--mut);margin-top:1px}
+  .src{margin-left:auto;font-size:10px;color:#8FDCD1;background:rgba(69,200,184,.10);border:1px solid rgba(69,200,184,.24);
+       padding:4px 9px;border-radius:6px;font-weight:700}
+  .cta{display:flex;align-items:center;gap:6px;background:linear-gradient(150deg,#E4B363,#C08F3C);color:#241A08;
+       padding:6px 12px;border-radius:6px;font-size:11px;font-weight:800}
+
+  .summary{display:flex;border-bottom:1px solid var(--line);background:#0D1017}
+  .sm{flex:1;padding:8px 16px;border-right:1px solid #141922;display:flex;align-items:center;gap:7px}
+  .sm:last-child{border:0}
+  .sm .k{font-size:8.5px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);font-weight:800}
+  .sm .v{font-size:13px;font-weight:700}
+  .sm .v.w{color:var(--warn)}
+
+  .thead,.trow{display:grid;grid-template-columns:20px 1fr 96px 62px 74px 146px 86px 20px;gap:8px;
+               padding:8px 18px;align-items:center}
+  .thead{font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);font-weight:800;
+         border-bottom:1px solid var(--line);background:#0D1017}
+  .trow{border-bottom:1px solid #131822;font-size:11px}
+  .trow.grp{display:block;background:#0D1017;font-size:9px;text-transform:uppercase;letter-spacing:.9px;
+            color:var(--dim);font-weight:800;padding:5px 18px}
+  .trow.grp.warn{color:#D9B47A}
+  .cb{width:13px;height:13px;border-radius:3.5px;border:1.5px solid #37425A;display:grid;place-items:center;
+      font-size:9px;color:#0A0C11}
+  .cb.on{background:var(--ok);border-color:var(--ok)}
+  .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sub{font-size:9px;color:var(--dim);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mut{color:var(--mut);font-size:10.5px;font-variant-numeric:tabular-nums}
+  .empty{color:var(--del);font-size:10px;font-weight:700}
+  .p{font-size:8.5px;padding:2px 6px;border-radius:4px;font-weight:800;letter-spacing:.3px;display:inline-block}
+  .p.hi{background:rgba(167,139,250,.16);color:#BFA9FD}.p.me{background:rgba(91,155,248,.16);color:#8FBDF9}
+  .p.lo{background:rgba(107,122,144,.18);color:#9AA9BE}
+  .cal{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:650;
+       background:#1A2130;border:1px solid #2A3346;border-radius:5px;padding:3px 7px}
+  .cal i{width:6px;height:6px;border-radius:2px;display:block}
+  .cal.inferred{border-style:dashed;border-color:#33405A}
+  .cal.inferred::after{content:"auto";font-size:7px;color:#5E6B80;font-weight:800;letter-spacing:.4px}
+  .cal.none{background:rgba(240,113,120,.10);border-color:#3A2224;color:#F09AA0;font-weight:700}
+  .edit{color:var(--dim);font-size:11px;text-align:center}
+
+  .foot{display:flex;align-items:center;gap:12px;padding:11px 18px;border-top:1px solid var(--line);background:#0E1219}
+  .foot .l{font-size:10.5px;color:var(--mut)}
+  .foot .l b{color:var(--tx)}
+  .foot .l .w{color:#F0BE71}
+  .foot .sp{margin-left:auto;display:flex;gap:8px}
+  .btn{padding:8px 14px;border-radius:7px;font-size:11px;font-weight:700}
+  .g{background:var(--p2);border:1px solid var(--line);color:var(--mut)}
+  .b{background:#1B2536;border:1px solid #2A3B58;color:#9EC5FF}
+
+  .banner{display:flex;align-items:center;gap:9px;padding:7px 18px;background:#101620;border-bottom:1px solid var(--line);
+          font-size:10px;color:#93A5BC}
+  .banner b{color:#C2D2E6}
+  .banner .k{font-size:8.5px;background:#1B2536;border:1px solid #2A3B58;color:#9EC5FF;padding:2px 6px;
+             border-radius:4px;font-weight:800;letter-spacing:.3px}
+</style></head>
+<body>
+
+<div class="rail">
+  <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+  <div class="nav">
+    <div class="grp">Plan</div><a><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+    <a class="on"><span class="ic">☰</span>Tasks<span class="bd">18</span></a><a><span class="ic">◎</span>Habits</a>
+    <div class="grp" style="margin-top:10px">Anchor</div><a><span class="ic">☾</span>Prayers</a>
+    <a><span class="ic">◔</span>Insights</a><a><span class="ic">⚙</span>Settings</a>
+  </div>
+  <div class="rank"><div class="t">Precedence</div>
+    <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+    <div><i></i>Pinned</div><div><i></i>Habits</div><div class="f"><i></i>Tasks</div></div>
+</div>
+
+<main>
+  <div class="top">
+    <div><h1>Review import</h1><div class="s">18 tasks parsed · check Est, Priority and Calendar before committing</div></div>
+    <div class="src">⇪ from agent · pasted syllabus</div>
+    <div class="cta">Commit 18 →</div>
+  </div>
+
+  <div class="banner">
+    <span class="k">WHY REVIEW</span>
+    Every row shows the three fields the engine needs. <b>Est + Priority + Calendar must all be set</b> — a task missing any of them stays in inbox. Edit any cell inline; nothing is created until you commit.
+  </div>
+
+  <div class="summary">
+    <div class="sm"><span class="k">Parsed</span><span class="v">18</span></div>
+    <div class="sm"><span class="k">Complete</span><span class="v" style="color:var(--ok)">14</span></div>
+    <div class="sm"><span class="k">Missing est</span><span class="v w">3</span></div>
+    <div class="sm"><span class="k">No calendar</span><span class="v w">2</span></div>
+    <div class="sm"><span class="k">Will schedule</span><span class="v">14</span></div>
+    <div class="sm"><span class="k">Will flag</span><span class="v w">4</span></div>
+  </div>
+
+  <div class="thead">
+    <div></div><div>Task</div><div>Subject</div><div>Est</div><div>Priority</div><div>Calendar</div><div>Deadline</div><div></div>
+  </div>
+
+  <div class="trow grp warn">Needs a decision — 4</div>
+
+  <div class="trow"><div class="cb"></div>
+    <div><div class="nm">W2D5 — Rate limiting</div><div class="sub">parsed "1h 45" as unknown unit</div></div>
+    <div class="mut">cybersec</div><div class="empty">—</div><div><span class="p hi">HIGH</span></div>
+    <div><span class="cal inferred"><i style="background:var(--learn)"></i>Learnings</span></div>
+    <div class="mut">Thu 23:59</div><div class="edit">✎</div></div>
+
+  <div class="trow"><div class="cb"></div>
+    <div><div class="nm">W2D6 — Enumeration</div><div class="sub">after W2D5</div></div>
+    <div class="mut">cybersec</div><div class="empty">—</div><div><span class="p hi">HIGH</span></div>
+    <div><span class="cal inferred"><i style="background:var(--learn)"></i>Learnings</span></div>
+    <div class="mut">Fri 23:59</div><div class="edit">✎</div></div>
+
+  <div class="trow"><div class="cb"></div>
+    <div><div class="nm">Fix weekly notes template</div><div class="sub">no duration found</div></div>
+    <div class="mut">admin</div><div class="empty">—</div><div><span class="p lo">LOW</span></div>
+    <div><span class="cal none">no calendar</span></div>
+    <div class="mut" style="color:var(--dim)">—</div><div class="edit">✎</div></div>
+
+  <div class="trow"><div class="cb"></div>
+    <div><div class="nm">Renew domain</div><div class="sub">no duration found</div></div>
+    <div class="mut">admin</div><div class="empty">—</div><div><span class="p me">MED</span></div>
+    <div><span class="cal none">no calendar</span></div>
+    <div class="mut">Sun 23:59</div><div class="edit">✎</div></div>
+
+  <div class="trow grp">Ready — 14</div>
+
+  <div class="trow"><div class="cb on">✓</div>
+    <div><div class="nm">W2D1 — Auth bypass</div><div class="sub">4 units × 30m</div></div>
+    <div class="mut">cybersec</div><div class="mut">2h</div><div><span class="p hi">HIGH</span></div>
+    <div><span class="cal inferred"><i style="background:var(--learn)"></i>Learnings</span></div>
+    <div class="mut" style="color:var(--warn)">Mon 23:59</div><div class="edit">✎</div></div>
+
+  <div class="trow"><div class="cb on">✓</div>
+    <div><div class="nm">W2D2 — Session flaws</div><div class="sub">depends on W2D1</div></div>
+    <div class="mut">cybersec</div><div class="mut">2h</div><div><span class="p hi">HIGH</span></div>
+    <div><span class="cal inferred"><i style="background:var(--learn)"></i>Learnings</span></div>
+    <div class="mut">Tue 23:59</div><div class="edit">✎</div></div>
+
+  <div class="trow"><div class="cb on">✓</div>
+    <div><div class="nm">W2D3 — Access control</div><div class="sub">depends on W2D2</div></div>
+    <div class="mut">cybersec</div><div class="mut">1h 45m</div><div><span class="p hi">HIGH</span></div>
+    <div><span class="cal inferred"><i style="background:var(--learn)"></i>Learnings</span></div>
+    <div class="mut">Thu 23:59</div><div class="edit">✎</div></div>
+
+  <div class="trow"><div class="cb on">✓</div>
+    <div><div class="nm">DB2 — Sharding</div><div class="sub">3 units</div></div>
+    <div class="mut">sys design</div><div class="mut">1h 30m</div><div><span class="p hi">HIGH</span></div>
+    <div><span class="cal"><i style="background:var(--learn)"></i>Learnings</span></div>
+    <div class="mut">Mon 23:59</div><div class="edit">✎</div></div>
+
+  <div class="trow"><div class="cb on">✓</div>
+    <div><div class="nm">LR2 — Back of envelope</div><div class="sub">4 units</div></div>
+    <div class="mut">sys design</div><div class="mut">2h</div><div><span class="p hi">HIGH</span></div>
+    <div><span class="cal"><i style="background:var(--learn)"></i>Learnings</span></div>
+    <div class="mut">Wed 23:59</div><div class="edit">✎</div></div>
+
+  <div class="trow"><div class="cb on">✓</div>
+    <div><div class="nm">Arabic — Lesson 14</div><div class="sub">daily 20m</div></div>
+    <div class="mut">Arabic</div><div class="mut">20m</div><div><span class="p me">MED</span></div>
+    <div><span class="cal"><i style="background:var(--arab)"></i>Arabic</span></div>
+    <div class="mut" style="color:var(--dim)">—</div><div class="edit">✎</div></div>
+
+  <div class="trow"><div class="cb on">✓</div>
+    <div><div class="nm">Call home</div><div class="sub">weekly</div></div>
+    <div class="mut">personal</div><div class="mut">30m</div><div><span class="p lo">LOW</span></div>
+    <div><span class="cal"><i style="background:var(--fam)"></i>Family</span></div>
+    <div class="mut" style="color:var(--dim)">—</div><div class="edit">✎</div></div>
+
+  <div class="trow"><div class="cb on">✓</div>
+    <div><div class="nm">Goa trip — book stay</div><div class="sub">1 unit</div></div>
+    <div class="mut">fun</div><div class="mut">45m</div><div><span class="p me">MED</span></div>
+    <div><span class="cal"><i style="background:var(--fun)"></i>Fun / Trips</span></div>
+    <div class="mut">Next Sun</div><div class="edit">✎</div></div>
+
+  <div class="foot">
+    <div class="l"><b>14 will be scheduled</b> · <span class="w">4 stay in inbox</span> until Est or Calendar is set · nothing is written to Google Calendar yet</div>
+    <div class="sp">
+      <div class="btn g">Edit as text</div>
+      <div class="btn b">Save 14 to inbox</div>
+      <div class="btn" style="background:linear-gradient(150deg,#E4B363,#C08F3C);color:#241A08">Commit &amp; preview plan →</div>
+    </div>
+  </div>
+</main>
+
+</body></html>

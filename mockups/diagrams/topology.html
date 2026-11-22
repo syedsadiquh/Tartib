@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Tartib — deployment topology</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0A0C11;--panel:#11141C;--p2:#151925;--line:#1D2230;--tx:#E7EBF3;--mut:#7A8699;--dim:#4A5468;
+        --prayer:#E4B363;--habit:#45C8B8;--high:#A78BFA;--ok:#3DD68C;--warn:#E9A23B;--ai:#7DD3FC}
+  body{background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;
+       width:1280px;height:760px;padding:26px 30px;-webkit-font-smoothing:antialiased}
+  h1{font-size:15px;font-weight:660;letter-spacing:-.3px}
+  .sub{font-size:10.5px;color:var(--mut);margin-top:2px}
+  .head{display:flex;align-items:flex-start;margin-bottom:18px}
+  .lgd{margin-left:auto;display:flex;gap:14px;font-size:9.5px;color:var(--mut);align-items:center}
+  .lgd span{display:flex;align-items:center;gap:5px}
+  .lgd i{width:8px;height:8px;border-radius:2px;display:block}
+  .stage{display:flex;gap:16px;height:520px}
+  .col{display:flex;flex-direction:column;gap:12px}
+  .zone{border:1px dashed #2B3547;border-radius:12px;padding:16px 12px 12px;position:relative;display:flex;flex-direction:column;gap:8px}
+  .zone .zt{position:absolute;top:-8px;left:12px;font-size:8.5px;letter-spacing:1px;text-transform:uppercase;
+            color:var(--dim);font-weight:800;background:var(--bg);padding:0 6px}
+  .box{background:var(--p2);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .box .n{font-size:11.5px;font-weight:640;display:flex;align-items:center;gap:6px}
+  .box .d{font-size:9.5px;color:var(--mut);margin-top:3px;line-height:1.5}
+  .box .m{font-size:8.5px;color:var(--dim);margin-top:4px;font-variant-numeric:tabular-nums}
+  .box.core{border-color:#22402F}
+  .box.agent{border-color:#1B3444;background:#0D1720}
+  .box.agent .n{color:#BFE1F2}
+  .tag{font-size:7.5px;font-weight:800;letter-spacing:.4px;padding:1px 4px;border-radius:3px;margin-left:auto}
+  .t-req{background:rgba(61,214,140,.12);color:#6FE3AB;border:1px solid #17331F}
+  .t-opt{background:rgba(125,211,252,.12);color:#7DD3FC;border:1px solid rgba(125,211,252,.26)}
+  .t-free{background:rgba(228,179,99,.12);color:#F0CB86;border:1px solid #3A2F1A}
+  .arrow{display:flex;align-items:center;justify-content:center;color:#3A4659;font-size:18px;width:20px}
+  .flow{font-size:8.5px;color:var(--dim);text-align:center;margin-top:-2px}
+  .mem{display:flex;height:10px;border-radius:5px;overflow:hidden;margin-top:6px}
+  .foot{display:flex;gap:12px;margin-top:16px}
+  .note{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:11px 13px;font-size:10px;color:var(--mut);line-height:1.55}
+  .note b{color:var(--tx)}
+</style></head>
+<body>
+<div class="head">
+  <div><h1>Tartib — deployment topology</h1>
+    <div class="sub">Web on Vercel · backend on one small VPS · Google Calendar is the display layer · agents are optional clients</div></div>
+  <div class="lgd"><span><i style="background:var(--ok)"></i>required 24×7</span><span><i style="background:var(--ai)"></i>optional</span><span><i style="background:var(--prayer)"></i>free tier</span></div>
+</div>
+
+<div class="stage">
+  <div class="col" style="width:220px">
+    <div class="zone"><span class="zt">clients</span>
+      <div class="box"><div class="n">📱 Phone PWA</div><div class="d">Installed to home screen · offline read view · push notifications</div></div>
+      <div class="box"><div class="n">💻 Desktop browser</div><div class="d">Week grid · drag to pin · review on the calendar · ⌘K</div></div>
+      <div class="box agent"><div class="n">🤖 Agents <span class="tag t-opt">OPTIONAL</span></div><div class="d">Scoped bearer tokens · same API and rules as the UI · every change marked AI / AUTO</div></div>
+    </div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <div class="col" style="width:230px">
+    <div class="zone"><span class="zt">vercel</span>
+      <div class="box"><div class="n">Next.js PWA <span class="tag t-free">FREE</span></div><div class="d">tartib.vercel.app<br>Client screens · TanStack Query · Serwist service worker</div></div>
+      <div class="box"><div class="n">/api rewrite</div><div class="d">Same-origin proxy to the API host — cookies, passkeys and OAuth callback just work</div></div>
+    </div>
+    <div class="flow">polls /api/version every 5 s → refetch on change</div>
+  </div>
+
+  <div class="arrow">→</div>
+
+  <div class="col" style="flex:1">
+    <div class="zone" style="flex:1"><span class="zt">vps · docker compose · ≈1 GB hard cap</span>
+      <div class="box core"><div class="n">Caddy <span class="tag t-req">REQUIRED</span></div><div class="d">TLS for tartib-api.duckdns.org (Let's Encrypt) · reverse proxy /api</div><div class="m">~48 MB cap</div></div>
+      <div class="box core"><div class="n">FastAPI API <span class="tag t-req">REQUIRED</span></div><div class="d">Tasks · habits · prayers · plan diff / apply · settings · agent tokens · Google webhook</div><div class="m">~384 MB cap</div></div>
+      <div class="box core"><div class="n">Worker <span class="tag t-req">REQUIRED</span></div><div class="d">Pure engine re-plans ~2 s after any change · auto-applies safe changes · two-way sync · notifications · watchdog</div><div class="m">~256 MB cap</div></div>
+      <div class="box core"><div class="n">Postgres 19 <span class="tag t-req">REQUIRED</span></div><div class="d">Source of truth · job queue · engine log · attribution on every record</div><div class="m">~320 MB cap</div></div>
+      <div class="box agent"><div class="n">Discord bot shim <span class="tag t-opt">OPTIONAL</span></div><div class="d">"add 2h revision before fri" · "what's next" — no browser, no AI</div><div class="m">~96 MB cap</div></div>
+      <div class="mem"><div style="flex:48;background:#2C5A44"></div><div style="flex:384;background:#3DD68C"></div><div style="flex:256;background:#45C8B8"></div><div style="flex:320;background:#6E8BD8"></div><div style="flex:96;background:#2B4C5E"></div></div>
+    </div>
+  </div>
+
+  <div class="arrow">⇄</div>
+
+  <div class="col" style="width:230px">
+    <div class="zone"><span class="zt">external services</span>
+      <div class="box core"><div class="n">📅 Google Calendar <span class="tag t-req">REQUIRED</span></div><div class="d">Blocks written to your own calendars · changes pushed back via webhooks within seconds · meetings feed read-only</div></div>
+      <div class="box"><div class="n">🔔 Web Push</div><div class="d">Block start · prayer time · plan needs approval · overload</div></div>
+      <div class="box"><div class="n">🗂 Notion <span class="tag t-opt">BACKUP</span></div><div class="d">Write-only mirror · read only on restore (dry-run diff first)</div></div>
+      <div class="box"><div class="n">✅ Healthchecks + Discord <span class="tag t-free">FREE</span></div><div class="d">Dead-man check · missed-run and failure alerts</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <div class="note"><b>Isolation.</b> Every container has a hard memory limit. If the host also runs other apps, a co-tenant that runs out of memory is killed inside its own container — prayer scheduling and calendar writes keep running.</div>
+  <div class="note"><b>No personal device needed.</b> Prayers, planning and calendar sync run 24×7 on the server. Agents and the bot are clients; the app never depends on them.</div>
+  <div class="note"><b>Cost.</b> VPS ≈ $5/month · Vercel, DuckDNS, TLS, Healthchecks free · optional AI capture a few cents.</div>
+</div>
+</body></html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Streak states</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0A0C11;--panel:#11141C;--p2:#151925;--line:#1D2230;--tx:#E7EBF3;--mut:#7A8699;--dim:#4A5468;
+        --prayer:#E4B363;--habit:#45C8B8;--high:#A78BFA;--ok:#3DD68C;--warn:#E9A23B;--del:#F07178}
+  body{background:#05070A;font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;color:var(--tx);
+       -webkit-font-smoothing:antialiased;display:flex;gap:20px;padding:20px}
+  .phone{width:390px;height:812px;background:var(--bg);border-radius:34px;border:1px solid #232A38;
+         overflow:hidden;position:relative;flex-shrink:0;display:flex;flex-direction:column}
+  .st{height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:10px;color:var(--dim)}
+  .hd{padding:0 16px 8px;display:flex;align-items:flex-end;justify-content:space-between}
+  .hd h2{font-size:20px;font-weight:660;letter-spacing:-.5px}
+  .hd .s{font-size:10.5px;color:var(--mut);margin-top:1px}
+  .pill{font-size:9.5px;color:var(--habit);background:rgba(69,200,184,.10);border:1px solid rgba(69,200,184,.24);
+        padding:3px 8px;border-radius:20px;font-weight:750}
+  .hk{padding:0 12px;flex:1;overflow:hidden}
+  .hc{background:var(--p2);border:1px solid var(--line);border-radius:11px;padding:9px 11px;margin-bottom:7px;display:flex;align-items:center;gap:9px}
+  .hc.due{border-color:#3A2C14;background:#171208}
+  .hc.brk{border-color:#3A2224;background:#150F11;opacity:.92}
+  .hck{width:24px;height:24px;border-radius:8px;border:1.5px solid #37425A;display:grid;place-items:center;font-size:12px;color:#0A0C11;flex-shrink:0}
+  .hck.dn{background:var(--habit);border-color:var(--habit)}
+  .hck.brk{background:rgba(240,113,120,.14);border-color:#4A2A2C;color:#F09AA0}
+  .hc .n{font-size:12px;font-weight:630;flex:1}
+  .hc .n .sub{display:block;font-size:9px;color:var(--mut);font-weight:500;margin-top:1px;line-height:1.4}
+  .hc.brk .n{color:#B9A3A5}
+  .stk{display:flex;gap:2px;flex-shrink:0}
+  .stk i{width:5px;height:5px;border-radius:1.5px;background:#242C3B;display:block}
+  .stk i.f{background:var(--habit)}
+  .stk i.p{background:rgba(69,200,184,.35)}
+  .stk i.x{background:rgba(240,113,120,.55)}
+  .kick{font-size:9px;color:#F0BE71;background:rgba(233,162,59,.12);border:1px solid #3A2C14;border-radius:6px;padding:3px 7px;font-weight:700;flex-shrink:0}
+  .react{font-size:9px;color:#8FDCD1;background:rgba(69,200,184,.10);border:1px solid rgba(69,200,184,.28);border-radius:6px;padding:3px 8px;font-weight:750;flex-shrink:0}
+  .sec{font-size:8.5px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);font-weight:800;padding:10px 14px 6px;display:flex;justify-content:space-between}
+  .rule{margin:0 12px 6px;background:#101620;border:1px solid #1E2836;border-radius:9px;padding:8px 10px;font-size:9.5px;color:#93A5BC;line-height:1.55}
+  .rule b{color:#C2D2E6}
+  .nav{position:absolute;left:0;right:0;bottom:0;height:58px;background:rgba(13,16,22,.97);border-top:1px solid var(--line);
+       display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:6px}
+  .nav div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:8.5px;color:var(--dim);font-weight:650}
+  .nav div .ic{font-size:14px}
+  .nav div.on{color:var(--prayer)}
+  .dim{position:absolute;inset:0;background:rgba(3,5,8,.64)}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--panel);border-radius:22px 22px 0 0;
+         border-top:1px solid #262E3E;padding:9px 14px 18px}
+  .grab{width:36px;height:4px;border-radius:2px;background:#2C3546;margin:0 auto 12px}
+  .sheet .ttl{font-size:14px;font-weight:660;margin-bottom:3px}
+  .sheet .sub{font-size:10px;color:var(--mut);margin-bottom:11px;line-height:1.5}
+  .stat2{display:flex;gap:6px;margin-bottom:11px}
+  .stat2 div{flex:1;background:var(--p2);border:1px solid var(--line);border-radius:8px;padding:7px 8px;text-align:center}
+  .stat2 .v{font-size:15px;font-weight:660;letter-spacing:-.3px}
+  .stat2 .k{font-size:7.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--dim);font-weight:800;margin-top:1px}
+  .opt{display:flex;align-items:center;gap:9px;background:var(--p2);border:1px solid var(--line);border-radius:10px;padding:10px 11px;margin-bottom:6px}
+  .opt.pri{background:rgba(69,200,184,.09);border-color:rgba(69,200,184,.26)}
+  .opt .ic{width:26px;height:26px;border-radius:8px;background:#1E2634;display:grid;place-items:center;font-size:12px;flex-shrink:0}
+  .opt.pri .ic{background:rgba(69,200,184,.14);color:var(--habit)}
+  .opt .n{font-size:11.5px;font-weight:620}
+  .opt .d{font-size:9px;color:var(--mut);margin-top:1px}
+</style></head>
+<body>
+
+<!-- A : three streak states -->
+<div class="phone">
+  <div class="st"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+  <div class="hd"><div><h2>Habits</h2><div class="s">2 of 4 done · 1 streak ended</div></div><div class="pill">◆ 14</div></div>
+
+  <div class="hk">
+    <div class="hc"><div class="hck dn">✓</div>
+      <div class="n">Freshup + AM skincare<span class="sub">45m · running clean</span></div>
+      <div class="stk"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div></div>
+
+    <div class="hc"><div class="hck"></div>
+      <div class="n">Gym<span class="sub" style="color:var(--mut)">skipped yesterday · streak held at 14</span></div>
+      <div class="stk"><i class="f"></i><i class="f"></i><i class="f"></i><i class="p"></i><i></i></div></div>
+
+    <div class="hc due"><div class="hck"></div>
+      <div class="n">Skincare PM<span class="sub" style="color:#E8B98F">2 skips in a row · one more ends the streak</span></div>
+      <div class="kick">1 left</div></div>
+
+    <div class="hc brk"><div class="hck brk">✕</div>
+      <div class="n">Deep work ≥ 2h<span class="sub">3rd skip today · streak 9 → 0</span></div>
+      <div class="react">Reactivate</div></div>
+
+    <div class="hc"><div class="hck"></div>
+      <div class="n">Qur'an 15m<span class="sub">hard · never compresses</span></div>
+      <div class="stk"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div></div>
+  </div>
+
+  <div class="sec">The rule <span style="text-transform:none;letter-spacing:0;font-weight:600;color:#5E6B80">3 skips = ended</span></div>
+  <div class="rule"><b>1 skip</b> holds the streak. <b>2</b> holds it but warns you. <b>3 in a row</b> ends it — resets to 0, habit marked ended until you reactivate.</div>
+  <div class="rule">Counted <b>per occurrence, not per day</b> — a weekly habit breaks after 3 skipped weeks. Logging it at any point resets the counter.</div>
+
+  <div class="nav"><div><span class="ic">◐</span>Today</div><div><span class="ic">◫</span>Week</div>
+    <div><span class="ic">☰</span>Tasks</div><div class="on"><span class="ic">◎</span>Habits</div><div><span class="ic">☾</span>Prayer</div></div>
+</div>
+
+<!-- B : reactivate -->
+<div class="phone">
+  <div class="st"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+  <div class="hd"><div><h2>Habits</h2><div class="s">2 of 4 done · 1 streak ended</div></div><div class="pill">◆ 14</div></div>
+
+  <div class="hk" style="opacity:.5">
+    <div class="hc"><div class="hck dn">✓</div><div class="n">Freshup + AM skincare<span class="sub">45m</span></div></div>
+    <div class="hc brk"><div class="hck brk">✕</div>
+      <div class="n">Deep work ≥ 2h<span class="sub">3rd skip today · streak 9 → 0</span></div>
+      <div class="react">Reactivate</div></div>
+    <div class="hc"><div class="hck"></div><div class="n">Qur'an 15m<span class="sub">hard</span></div></div>
+  </div>
+
+  <div class="dim"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="ttl">Reactivate Deep work ≥ 2h</div>
+    <div class="sub">Streak starts again at 0. Your history is kept — it stays in the record and in Insights.</div>
+
+    <div class="stat2">
+      <div><div class="v">46</div><div class="k">occurrences</div></div>
+      <div><div class="v">9</div><div class="k">best streak</div></div>
+      <div><div class="v">12</div><div class="k">compressed</div></div>
+    </div>
+
+    <div class="opt pri"><div class="ic">↺</div>
+      <div><div class="n">Reactivate from today</div><div class="d">Schedules tonight 19:00 if a slot exists</div></div></div>
+
+    <div class="opt"><div class="ic">→</div>
+      <div><div class="n">Reactivate from tomorrow</div><div class="d">Starts fresh Mon 24</div></div></div>
+
+    <div style="margin-top:9px;background:#101620;border:1px solid #1E2836;border-radius:8px;padding:7px 9px;font-size:9.5px;color:#93A5BC;line-height:1.5">
+      <b style="color:#C2D2E6">Past data is never deleted.</b> A reactivated habit keeps every record — the streak chart shows the gap, not a blank line.
+    </div>
+  </div>
+
+  <div class="nav"><div><span class="ic">◐</span>Today</div><div><span class="ic">◫</span>Week</div>
+    <div><span class="ic">☰</span>Tasks</div><div class="on"><span class="ic">◎</span>Habits</div><div><span class="ic">☾</span>Prayer</div></div>
+</div>
+
+</body></html>

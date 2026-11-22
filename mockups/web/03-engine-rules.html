@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Engine rules</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0A0C11;--panel:#11141C;--p2:#151925;--line:#1D2230;--tx:#E7EBF3;--mut:#7A8699;--dim:#4A5468;
+        --prayer:#E4B363;--habit:#45C8B8;--high:#A78BFA;--med:#5B9BF8;--low:#6B7A90;--ok:#3DD68C;--warn:#E9A23B;--del:#F07178;--meet:#8C9BB5}
+  body{background:#05070A;font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;color:var(--tx);
+       -webkit-font-smoothing:antialiased;display:flex;gap:26px;padding:26px}
+  .frame{width:1040px;height:648px;overflow:hidden;border-radius:12px;border:1px solid #232A38;background:var(--bg);position:relative}
+  .screen{width:1440px;height:900px;transform:scale(.7222);transform-origin:top left;background:var(--bg);display:flex}
+  .label{position:absolute;bottom:-22px;left:2px;font-size:11px;color:#5A6577;letter-spacing:.6px;text-transform:uppercase;font-weight:700}
+  .rail{width:206px;border-right:1px solid var(--line);padding:16px 11px;display:flex;flex-direction:column;gap:16px;background:var(--panel);flex-shrink:0}
+  .brand{display:flex;align-items:center;gap:9px;padding:0 6px}
+  .mark{width:25px;height:25px;border-radius:7px;background:linear-gradient(145deg,#E4B363,#B9833A);display:grid;place-items:center;font-size:12px;color:#1a1206;font-weight:800}
+  .brand b{font-size:13.5px;font-weight:650}
+  .nav{display:flex;flex-direction:column;gap:1px}
+  .nav a{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;color:var(--mut);font-size:12px;font-weight:500;text-decoration:none}
+  .nav a.on{background:var(--p2);color:var(--tx)}
+  .nav a .ic{width:14px;text-align:center;font-size:11.5px}
+  .nav a .bd{margin-left:auto;font-size:9.5px;background:#2A3242;color:#9FAEC4;padding:1px 5px;border-radius:4px;font-weight:700}
+  .grp{font-size:9px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);padding:0 9px 4px;font-weight:800}
+  .rank{margin-top:auto;border-top:1px solid var(--line);padding-top:10px}
+  .rank .t{font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px}
+  .rank div{font-size:10px;color:#6B7688;padding:2.5px 0;display:flex;gap:6px;align-items:center}
+  .rank div i{width:4px;height:4px;border-radius:50%;background:#2E3849;flex-shrink:0}
+  .rank div.f{color:var(--tx)}.rank div.f i{background:var(--prayer)}
+  .top{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .top h1{font-size:15px;font-weight:650;letter-spacing:-.3px}
+  .top .s{font-size:10.5px;color:var(--mut);margin-top:1px}
+  .seg{display:flex;background:var(--p2);border:1px solid var(--line);border-radius:6px;padding:2px;margin-left:auto}
+  .seg span{padding:3px 9px;border-radius:4px;font-size:11px;color:var(--mut);font-weight:600}
+  .seg span.on{background:#222A3A;color:var(--tx)}
+  .cta{display:flex;align-items:center;gap:6px;background:#1B2536;border:1px solid #2A3B58;color:#9EC5FF;
+       padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700}
+  .sec{font-size:8.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);font-weight:800;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
+  .sec span{text-transform:none;letter-spacing:0;color:#5E6B80;font-size:9.5px;font-weight:600}
+  .card{background:var(--p2);border:1px solid var(--line);border-radius:6px;padding:7px 9px;margin-bottom:5px}
+  .p{font-size:8.5px;padding:1.5px 5px;border-radius:3px;font-weight:800;letter-spacing:.3px}
+  .p.hi{background:rgba(167,139,250,.16);color:#BFA9FD}.p.me{background:rgba(91,155,248,.16);color:#8FBDF9}
+  .p.gr{background:#1C2331;color:#8B9AB1}.p.ok{background:rgba(61,214,140,.14);color:#6FE3AB}
+  .p.wn{background:rgba(233,162,59,.16);color:#EFBB6E}
+  .note{background:#101620;border:1px solid #1E2836;border-radius:6px;padding:7px 9px;font-size:9.5px;color:#93A5BC;line-height:1.5;margin-bottom:6px}
+  .note b{color:#C2D2E6}
+  .note.warn{border-color:#3A2C14;background:#171208;color:#D9B47A}
+  .note.ok{border-color:#16311F;background:#0C1710;color:#8EDCB0}
+
+  /* log */
+  .log{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .filters{display:flex;gap:5px;padding:8px 16px;border-bottom:1px solid var(--line)}
+  .f{padding:4px 10px;border-radius:5px;font-size:10.5px;color:var(--mut);font-weight:600;border:1px solid transparent}
+  .f.on{background:var(--p2);color:var(--tx);border-color:var(--line)}
+  .lrow{display:grid;grid-template-columns:72px 108px 1fr 130px;gap:10px;padding:9px 16px;border-bottom:1px solid #131822;align-items:start;font-size:11px}
+  .lrow .tm{font-size:9.5px;color:var(--dim);font-variant-numeric:tabular-nums;padding-top:1px}
+  .rt{font-size:8px;font-weight:850;letter-spacing:.5px;padding:2px 5px;border-radius:3px;text-align:center;text-transform:uppercase}
+  .r-shrink{background:rgba(69,200,184,.14);color:#8FDCD1}
+  .r-hold{background:rgba(233,162,59,.16);color:#F0BE71}
+  .r-free{background:rgba(61,214,140,.14);color:#6FE3AB}
+  .r-shift{background:rgba(228,179,99,.16);color:#EFC68C}
+  .r-stack{background:rgba(167,139,250,.16);color:#C3AEFD}
+  .lrow .d{font-weight:600;line-height:1.4}
+  .lrow .d small{display:block;font-size:9.5px;color:var(--mut);font-weight:500;margin-top:2px;line-height:1.45}
+  .lrow .eff{font-size:9.5px;color:var(--mut);text-align:right;line-height:1.45}
+  .lrow .eff b{color:var(--tx);font-weight:650}
+
+  /* today */
+  .day{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .stats{display:flex;border-bottom:1px solid var(--line)}
+  .stat{flex:1;padding:8px 14px;border-right:1px solid #141922}
+  .stat:last-child{border:0}
+  .stat .k{font-size:8.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);font-weight:800}
+  .stat .v{font-size:16px;font-weight:650;margin-top:1px;letter-spacing:-.4px}
+  .stat .v small{font-size:10px;color:var(--mut);font-weight:500;letter-spacing:0}
+  .tl{padding:8px 14px;flex:1;display:flex;flex-direction:column;justify-content:space-between}
+  .row{display:flex;gap:9px;align-items:stretch}
+  .row .h{width:36px;font-size:9.5px;color:var(--dim);text-align:right;padding-top:8px;flex-shrink:0;font-variant-numeric:tabular-nums}
+  .bx{flex:1;border-radius:6px;padding:7px 10px;border-left:2.5px solid;font-size:11px}
+  .bx .t{font-weight:620;font-size:11.5px}
+  .bx .m{font-size:9.5px;opacity:.72;margin-top:1px}
+  .bx.hi{background:rgba(167,139,250,.13);border-color:var(--high);color:#D5C8FE}
+  .bx.me{background:rgba(91,155,248,.12);border-color:var(--med);color:#C2D8FD}
+  .bx.ha{background:rgba(69,200,184,.09);border-color:var(--habit);color:#A9E8E0}
+  .bx.pr{background:rgba(228,179,99,.15);border-color:var(--prayer);color:#F5E0BA;padding:4px 9px;font-size:10px;font-weight:750}
+  .bx.qa{background:rgba(228,179,99,.07);border:1px dashed var(--prayer);color:#E6C48D;padding:5px 9px;font-size:10px;font-weight:700}
+  .bx.qa.dn{opacity:.5;text-decoration:line-through;border-style:solid}
+  .bx.mt{background:rgba(140,155,181,.10);border-color:var(--meet);color:#B7C3D6}
+  .bx.dn{opacity:.45;text-decoration:line-through}
+  .bx.newr{border-color:var(--ok);box-shadow:0 0 0 1px rgba(61,214,140,.3)}
+  .mv{font-size:8px;font-weight:800;letter-spacing:.4px;background:rgba(61,214,140,.18);color:#7FE0B0;padding:1px 4px;border-radius:3px;margin-left:5px}
+  .notice{margin:0 12px 8px;border-radius:9px;padding:8px 10px;font-size:9.5px;line-height:1.55}
+  .notice.ok{background:#0C1710;border:1px solid #16311F;color:#8EDCB0}
+  .notice.warn{background:#171208;border:1px solid #3A2C14;color:#D9B47A}
+  .notice b{color:#F3DCB2;font-weight:650}
+  .notice.ok b{color:#B7F0CE}
+  .aside{border-left:1px solid var(--line);background:var(--panel);width:344px;display:flex;flex-direction:column;overflow:hidden}
+  .pb{padding:10px 11px;flex:1;overflow:hidden}
+  .arow2{display:flex;gap:6px;font-size:9.5px;color:#93A5BC;line-height:1.5;margin-bottom:5px}
+  .arow2 b{color:#C2D2E6}
+  .btnrow{display:flex;gap:6px;margin-top:8px}
+  .btn{flex:1;text-align:center;font-size:10px;font-weight:700;padding:7px;border-radius:6px;background:var(--p2);border:1px solid var(--line);color:var(--mut)}
+  .btn.pri{background:rgba(233,162,59,.14);border-color:#3A2C14;color:#F0BE71}
+</style></head>
+<body>
+
+<!-- ========== 1 ENGINE LOG ========== -->
+<div style="position:relative"><div class="frame"><div class="screen">
+  <div class="rail">
+    <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+    <div class="nav">
+      <div class="grp">Plan</div><a><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+      <a><span class="ic">☰</span>Tasks</a><a><span class="ic">◎</span>Habits</a>
+      <div class="grp" style="margin-top:10px">Anchor</div><a><span class="ic">☾</span>Prayers</a>
+      <a class="on"><span class="ic">◔</span>Engine log<span class="bd">11</span></a>
+    </div>
+    <div class="rank"><div class="t">Precedence</div>
+      <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+      <div><i></i>Pinned</div><div><i></i>Habits</div><div><i></i>Tasks</div></div>
+  </div>
+
+  <div class="log">
+    <div class="top"><div><h1>Engine log</h1><div class="s">Every automatic decision, the rule it used, and what it cost</div></div>
+      <div class="seg"><span class="on">Today</span><span>Week</span></div></div>
+
+    <div class="filters"><div class="f on">All 11</div><div class="f">Shrinks 3</div><div class="f">Held 2</div>
+      <div class="f">Prayers 4</div><div class="f">Released 2</div></div>
+
+    <div class="lrow"><div class="tm">20:41</div><div><span class="rt r-shrink">min shrink</span></div>
+      <div class="d">Gym gave up 30 minutes — not 45
+        <small>Needed 30m for W2D2 to land before Tue. Shrink stops the moment the task fits.</small></div>
+      <div class="eff">3h → <b>2h 30m</b><br>min 60m intact</div></div>
+
+    <div class="lrow"><div class="tm">20:41</div><div><span class="rt r-hold">held at floor</span></div>
+      <div class="d">W2D4 NOT scheduled — Gym already at 60m minimum
+        <small>Needed 2h 30m, only 0m of flex left. Shrinking below the floor is not allowed, so it stopped and flagged.</small></div>
+      <div class="eff"><b style="color:var(--warn)">2h 30m short</b><br>flagged, not forced</div></div>
+
+    <div class="lrow"><div class="tm">20:05</div><div><span class="rt r-free">released</span></div>
+      <div class="d">Qada · Asr prayed at 20:00 → 55m freed
+        <small>You marked it done early. The slot reopened and W2D3 took 20:05–21:00 instead of waiting for Thu.</small></div>
+      <div class="eff"><b>+55m</b> capacity<br>1 task scheduled</div></div>
+
+    <div class="lrow"><div class="tm">19:48</div><div><span class="rt r-stack">stacked</span></div>
+      <div class="d">Asr · Dhuhr → both qada, stacked after Isha
+        <small>Both windows were blocked by meetings. Stacked 20:30–21:00 and 21:00–21:25 per your rule.</small></div>
+      <div class="eff"><b>55m</b> qada<br>2 blocks, never task-filled</div></div>
+
+    <div class="lrow"><div class="tm">19:41</div><div><span class="rt r-shift">shifted</span></div>
+      <div class="d">Dhuhr moved 13:00 → 13:20
+        <small>Inside its window, 10m protected at each edge. No qada needed.</small></div>
+      <div class="eff">+20m offset<br><b>window kept</b></div></div>
+
+    <div class="lrow"><div class="tm">19:02</div><div><span class="rt r-free">released</span></div>
+      <div class="d">Gym skipped by you → 30m released
+        <small>Skincare PM kept its minimum; Skincare took the trimmed slot instead of the whole block.</small></div>
+      <div class="eff"><b>+30m</b> freed<br>streak paused</div></div>
+
+    <div class="lrow" style="border:0"><div class="tm">18:30</div><div><span class="rt r-hold">held at floor</span></div>
+      <div class="d">Deep work ≥ 2h could not be compressed
+        <small>Its minimum equals its ideal — hard habit. Task rescheduled to Sunday instead of touching it.</small></div>
+      <div class="eff">moved <b>+1 day</b><br>no habit change</div></div>
+  </div>
+</div><div class="label">Web · Engine log — every decision &amp; the rule behind it</div></div></div>
+
+<!-- ========== 2 QADA RELEASED ========== -->
+<div style="position:relative"><div class="frame"><div class="screen">
+  <div class="rail">
+    <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+    <div class="nav">
+      <div class="grp">Plan</div><a class="on"><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+      <a><span class="ic">☰</span>Tasks</a><a><span class="ic">◎</span>Habits</a>
+      <div class="grp" style="margin-top:10px">Anchor</div><a><span class="ic">☾</span>Prayers</a>
+      <a><span class="ic">◔</span>Engine log<span class="bd">11</span></a>
+    </div>
+    <div class="rank"><div class="t">Precedence</div>
+      <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+      <div><i></i>Pinned</div><div><i></i>Habits</div><div><i></i>Tasks</div></div>
+  </div>
+
+  <div class="day">
+    <div class="top"><div><h1>Today</h1><div class="s">Fri 28 Nov · qada cleared early</div></div>
+      <div class="seg"><span class="on">Day</span><span>Week</span></div><div class="cta">⇄ Re-plan · 2</div></div>
+
+    <div class="stats">
+      <div class="stat"><div class="k">Planned</div><div class="v">7h 05<small>m</small></div></div>
+      <div class="stat"><div class="k">Done</div><div class="v" style="color:var(--ok)">4h 20<small>m</small></div></div>
+      <div class="stat"><div class="k">Released</div><div class="v" style="color:var(--ok)">+55<small>m</small></div></div>
+      <div class="stat"><div class="k">Qada</div><div class="v" style="color:var(--ok)">0</div></div>
+    </div>
+
+    <div class="notice ok"><b>Qada · Asr prayed at 20:00.</b> 55 minutes came back, and W2D3 took 20:05–21:00 — it was the next thing flagged for Thursday.</div>
+
+    <div class="tl">
+      <div class="row"><div class="h">10:00</div><div class="bx mt"><div class="t">Client review</div><div class="m">12:45 – 13:45 · from Google Calendar</div></div></div>
+      <div class="row"><div class="h">14:00</div><div class="bx hi dn"><div class="t">W2D4: IDOR practice</div><div class="m">done · 1h 45m</div></div></div>
+      <div class="row"><div class="h">15:35</div><div class="bx pr">☾ Asr · 15:35 – 16:00</div></div>
+      <div class="row"><div class="h">17:05</div><div class="bx pr">☾ Maghrib · 17:05 – 17:25</div></div>
+      <div class="row"><div class="h">19:45</div><div class="bx pr">☾ Isha · 19:45 – 20:30</div></div>
+      <div class="row"><div class="h">20:00</div><div class="bx qa dn"><div class="t">Qada · Jummah · Asr</div><div class="m">prayed 20:00 · marked early by you</div></div></div>
+      <div class="row"><div class="h">20:05</div><div class="bx hi newr"><div class="t">W2D3: Access control <span class="mv">NEW · 55m</span></div><div class="m">20:05 – 21:00 · pulled forward from Thu</div></div></div>
+      <div class="row"><div class="h">21:10</div><div class="bx ha"><div class="t">Skincare PM</div><div class="m">10m · min protected</div></div></div>
+      <div class="row"><div class="h">21:30</div><div class="bx me"><div class="t">W2D3 cont. — role matrix</div><div class="m">30m · remaining units</div></div></div>
+    </div>
+  </div>
+
+  <div class="aside"><div class="pb">
+    <div class="sec">What just happened</div>
+    <div class="note ok"><b>Qada is a placeholder, not a grave.</b> Until you pray it, nothing may take the block. The moment you mark it done — or move it earlier and pray — the time becomes ordinary capacity again.</div>
+    <div class="sec" style="margin-top:10px">Order it was refilled</div>
+    <div class="arow2"><span>1</span><div><b>Flagged tasks first</b> — anything carrying a "couldn't fit" flag gets the freed slot before anything new.</div></div>
+    <div class="arow2"><span>2</span><div><b>Then by deadline pressure</b> — nearest deadline, highest effort gate satisfied.</div></div>
+    <div class="arow2"><span>3</span><div><b>Then pinned nothing</b> — a freed slot never displaces a block you placed.</div></div>
+    <div class="sec" style="margin-top:10px">Still protected</div>
+    <div class="card"><div class="t">Qada blocks are never task-filled</div><div class="r">dashed gold · only you can clear them</div></div>
+    <div class="card"><div class="t">Prayers stay above habits</div><div class="r">a freed slot never becomes "not praying"</div></div>
+  </div></div>
+</div><div class="label">Web · Qada completed early → time released → rescheduled</div></div></div>
+
+<!-- ========== 3 HELD AT FLOOR ========== -->
+<div style="position:relative"><div class="frame"><div class="screen">
+  <div class="rail">
+    <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+    <div class="nav">
+      <div class="grp">Plan</div><a class="on"><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+      <a><span class="ic">☰</span>Tasks</a><a><span class="ic">◎</span>Habits</a>
+      <div class="grp" style="margin-top:10px">Anchor</div><a><span class="ic">☾</span>Prayers</a>
+      <a><span class="ic">◔</span>Engine log<span class="bd">11</span></a>
+    </div>
+    <div class="rank"><div class="t">Precedence</div>
+      <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+      <div><i></i>Pinned</div><div><i></i>Habits</div><div class="f"><i></i>Tasks</div></div>
+  </div>
+
+  <div class="day">
+    <div class="top"><div><h1>Needs a decision</h1><div class="s">2 tasks could not be placed · 1 shortfall</div></div>
+      <div class="seg"><span>Day</span><span>Week</span></div></div>
+
+    <div class="notice warn"><b>Compressed to the floor, then stopped.</b> W2D4 needs 3h 30m. Gym was compressed all the way to its 60m minimum — it gave up 2h — and the task is still 30m short. So the habit is trimmed and the task is flagged.</div>
+
+    <div style="padding:4px 16px 0">
+      <div class="card" style="border-color:#3A2C14;background:#151109;padding:10px 12px;margin-bottom:9px">
+        <div class="t" style="font-size:12px;font-weight:650">cybersec — W2D4: IDOR practice
+          <span class="p wn" style="margin-left:6px">FLAGGED</span></div>
+        <div class="r" style="font-size:10px;color:var(--mut);margin-top:3px">High · 3h 30m · due Thu · 7 units</div>
+        <div style="display:flex;gap:6px;margin-top:7px;font-size:9px">
+          <span style="background:#1B2230;border:1px solid #2A3444;border-radius:4px;padding:2px 6px;color:#9AA9BE">needs 3h 30m</span>
+          <span style="background:#1B2230;border:1px solid #2A3444;border-radius:4px;padding:2px 6px;color:#9AA9BE">High slots before Thu: 1h 00m</span>
+          <span style="background:#1B2230;border:1px solid #2A3444;border-radius:4px;padding:2px 6px;color:#9AA9BE">Gym flex: 2h 00m</span>
+          <span style="background:#2A1B1D;border:1px solid #4A2A2C;border-radius:4px;padding:2px 6px;color:#F09AA0">short 30m</span>
+        </div>
+      </div>
+
+      <div class="sec">Resolve — the engine will not choose</div>
+      <div class="card"><div class="t">Push the deadline</div><div class="r">W2D4 → Sat 29, deadline moves with it</div></div>
+      <div class="card"><div class="t">Skip a habit occurrence</div><div class="r">Skip Gym Thu → frees 2h 00m total · covers the last 30m</div></div>
+      <div class="card"><div class="t">Extend Thu by 30m</div><div class="r" style="color:var(--ok)">fits · uses the office→evening gap, keeps Gym at 60m</div></div>
+      <div class="card"><div class="t">Lower W2D4 to 2h 00m</div><div class="r">drop the notes unit (30m)</div></div>
+
+      <div class="sec" style="margin-top:12px">Also waiting <span>1</span></div>
+      <div class="card"><div class="t">cybersec — W2D6: Enumeration</div>
+        <div class="r">blocked by dependency — starts only after W2D4 lands</div></div>
+
+      <div class="note-warn" style="margin-top:9px;background:#101620;border:1px solid #1E2836;border-radius:6px;padding:8px 10px;font-size:9.5px;color:#93A5BC;line-height:1.55">
+        <b style="color:#C2D2E6">If you do nothing:</b> W2D4 keeps its flag, W2D6 stays behind it, and the badge stays on Today. Nothing gets dropped, nothing gets double-booked, and you get exactly one reminder tomorrow morning — not hourly.
+      </div>
+    </div>
+  </div>
+
+  <div class="aside"><div class="pb">
+    <div class="sec">The shrink rule, stated once</div>
+    <div class="note"><b>Shrink exactly what the task needs.</b> Not a ladder, not a percentage — the minimum amount that makes it fit, and not one minute more.</div>
+    <div class="note"><b>Never below the habit's minimum.</b> If the required shrink exceeds the flex, stop at the floor and flag the task.</div>
+    <div class="note"><b>Report, don't force.</b> A flagged task keeps its flag and its badge until you resolve it. Nothing gets silently dropped and nothing gets silently overbooked.</div>
+    <div class="sec" style="margin-top:10px">Shrink math — this task</div>
+    <div class="card"><div class="t">Gym Thu: 3h → min 60m</div><div class="r">flex available: 2h 00m</div></div>
+    <div class="card"><div class="t">Shrink applied: 2h 00m</div><div class="r" style="color:var(--ok)">Gym is now at its 60m minimum</div></div>
+    <div class="card"><div class="t">Task still short 30m</div><div class="r" style="color:var(--warn)">compressed + flagged, not dropped</div></div>
+    <div class="note warn" style="margin-top:8px"><b>Why stop at the floor?</b> The minimum is absolute. It gave everything it had — 2h — and still came up 30m short, so the engine took the whole 2h, scheduled what fits, and reported the rest. It never crosses the minimum and never silently overbooks.</div>
+
+    <div class="btnrow"><div class="btn pri">Push deadline</div><div class="btn">Skip habit</div><div class="btn">Make time</div></div>
+  </div></div>
+</div><div class="label">Web · Held at floor — flag &amp; stop with the exact shortfall</div></div></div>
+
+</body></html>

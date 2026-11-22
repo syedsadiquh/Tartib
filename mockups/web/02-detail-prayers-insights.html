@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Web concepts B</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0A0C11;--panel:#11141C;--p2:#151925;--line:#1D2230;--tx:#E7EBF3;--mut:#7A8699;--dim:#4A5468;
+        --prayer:#E4B363;--habit:#45C8B8;--high:#A78BFA;--med:#5B9BF8;--low:#6B7A90;--ok:#3DD68C;--warn:#E9A23B;--del:#F07178}
+  body{background:#05070A;font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;color:var(--tx);
+       -webkit-font-smoothing:antialiased;display:flex;gap:26px;padding:26px}
+  .frame{width:1040px;height:648px;overflow:hidden;border-radius:12px;border:1px solid #232A38;background:var(--bg);position:relative}
+  .screen{width:1440px;height:900px;transform:scale(.7222);transform-origin:top left;background:var(--bg);display:flex}
+  .label{position:absolute;bottom:-22px;left:2px;font-size:11px;color:#5A6577;letter-spacing:.6px;text-transform:uppercase;font-weight:700}
+  .rail{width:206px;border-right:1px solid var(--line);padding:16px 11px;display:flex;flex-direction:column;gap:16px;background:var(--panel);flex-shrink:0}
+  .brand{display:flex;align-items:center;gap:9px;padding:0 6px}
+  .mark{width:25px;height:25px;border-radius:7px;background:linear-gradient(145deg,#E4B363,#B9833A);display:grid;place-items:center;font-size:12px;color:#1a1206;font-weight:800}
+  .brand b{font-size:13.5px;font-weight:650}
+  .nav{display:flex;flex-direction:column;gap:1px}
+  .nav a{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;color:var(--mut);font-size:12px;font-weight:500;text-decoration:none}
+  .nav a.on{background:var(--p2);color:var(--tx)}
+  .nav a .ic{width:14px;text-align:center;font-size:11.5px}
+  .grp{font-size:9px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);padding:0 9px 4px;font-weight:800}
+  .rank{margin-top:auto;border-top:1px solid var(--line);padding-top:10px}
+  .rank .t{font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px}
+  .rank div{font-size:10px;color:#6B7688;padding:2.5px 0;display:flex;gap:6px;align-items:center}
+  .rank div i{width:4px;height:4px;border-radius:50%;background:#2E3849;flex-shrink:0}
+  .rank div.f{color:var(--tx)}.rank div.f i{background:var(--prayer)}
+  .top{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .top h1{font-size:15px;font-weight:650;letter-spacing:-.3px}
+  .top .s{font-size:10.5px;color:var(--mut);margin-top:1px}
+  .cta{display:flex;align-items:center;gap:6px;background:#1B2536;border:1px solid #2A3B58;color:#9EC5FF;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700}
+  .sec{font-size:8.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);font-weight:800;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center}
+  .sec span{text-transform:none;letter-spacing:0;color:#5E6B80;font-size:9.5px;font-weight:600}
+  .card{background:var(--p2);border:1px solid var(--line);border-radius:6px;padding:7px 9px;margin-bottom:5px}
+  .p{font-size:8.5px;padding:1.5px 5px;border-radius:3px;font-weight:800;letter-spacing:.3px}
+  .p.hi{background:rgba(167,139,250,.16);color:#BFA9FD}.p.me{background:rgba(91,155,248,.16);color:#8FBDF9}
+  .p.lo{background:rgba(107,122,144,.18);color:#9AA9BE}.p.du{background:rgba(233,162,59,.16);color:#EFBB6E}
+  .p.gr{background:#1C2331;color:#8B9AB1}.p.ok{background:rgba(61,214,140,.14);color:#6FE3AB}
+  .note{background:#101620;border:1px solid #1E2836;border-radius:6px;padding:7px 9px;font-size:9.5px;color:#93A5BC;line-height:1.5;margin-bottom:6px}
+  .note b{color:#C2D2E6}
+  .note.warn{border-color:#3A2C14;background:#171208;color:#D9B47A}
+  .note.ok{border-color:#16311F;background:#0C1710;color:#8EDCB0}
+
+  /* task detail */
+  .detail{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .dhead{padding:14px 20px 12px;border-bottom:1px solid var(--line)}
+  .crumb{font-size:10px;color:var(--dim);margin-bottom:5px}
+  .crumb b{color:#8FA3BF;font-weight:600}
+  .dhead h2{font-size:19px;font-weight:650;letter-spacing:-.4px;line-height:1.3}
+  .dmeta{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap;align-items:center}
+  .dbody{flex:1;display:grid;grid-template-columns:1fr 372px;overflow:hidden}
+  .dmain{padding:14px 20px;overflow:hidden;border-right:1px solid var(--line)}
+  .subrow{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:11.5px}
+  .cb{width:13px;height:13px;border-radius:3.5px;border:1.5px solid #37425A;display:grid;place-items:center;font-size:9px;color:#0A0C11;flex-shrink:0}
+  .cb.dn{background:var(--high);border-color:var(--high)}
+  .subrow .n{flex:1}
+  .subrow.dn .n{color:var(--dim);text-decoration:line-through}
+  .subrow .w{font-size:10px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .bar{height:4px;background:#1B2230;border-radius:2px;margin-top:9px;display:flex;gap:1.5px;overflow:hidden}
+  .bar i{height:100%;border-radius:1px}
+  .hist{display:flex;gap:8px;font-size:10.5px;color:var(--mut);padding:4px 0;line-height:1.5}
+  .hist .tm{color:var(--dim);width:74px;flex-shrink:0;font-variant-numeric:tabular-nums}
+  .hist b{color:#C4D0E2;font-weight:600}
+  .dside{padding:12px 14px;background:var(--panel);overflow:hidden}
+  .prop{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid #141922}
+  .prop .k{color:var(--mut)}
+  .prop .v{font-weight:600;color:var(--tx)}
+  .whyr{display:flex;gap:6px;font-size:10px;color:#93A5BC;line-height:1.55;margin-bottom:4px}
+  .whyr b{color:#C2D2E6}
+  .strip{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:6px}
+  .strip div{height:26px;border-radius:3px;background:#141922;position:relative;overflow:hidden}
+  .strip div i{position:absolute;left:0;right:0;background:rgba(167,139,250,.4)}
+
+  /* prayers */
+  .pw{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .pwrap{flex:1;display:grid;grid-template-columns:1fr 380px;overflow:hidden}
+  .pl{padding:14px 18px;border-right:1px solid var(--line)}
+  .prow{display:flex;align-items:center;gap:12px;padding:9px 11px;border-radius:7px;background:var(--p2);border:1px solid var(--line);margin-bottom:6px}
+  .prow.next{background:linear-gradient(150deg,#1D190F,#12151D);border-color:#33280F}
+  .prow .nm{font-size:13px;font-weight:640;width:88px}
+  .prow.next .nm{color:var(--prayer)}
+  .prow .tm{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;width:70px}
+  .prow .du{font-size:10px;color:var(--dim);width:60px}
+  .prow .kd{font-size:9.5px;color:var(--mut);flex:1}
+  .prow .tg{font-size:8.5px;padding:1.5px 5px;border-radius:3px;font-weight:750}
+  .tg.fx{background:#242C3B;color:#9AA9BE}.tg.cm{background:rgba(69,200,184,.14);color:#8FDCD1}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px}
+  .cal div{background:var(--p2);border:1px solid #1A2230;border-radius:4px;padding:4px;font-size:8px;color:var(--dim);line-height:1.45}
+  .cal div b{display:block;font-size:8.5px;color:#9AA9BE;font-weight:700;margin-bottom:1px}
+  .cal div.today{border-color:var(--prayer);background:#171208}
+  .cal div.today b{color:var(--prayer)}
+
+  /* insights */
+  .ins{flex:1;padding:14px 18px;overflow:hidden}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin-bottom:11px}
+  .box{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:11px 12px}
+  .box .k{font-size:8.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);font-weight:800}
+  .box .v{font-size:24px;font-weight:660;letter-spacing:-.8px;margin-top:3px}
+  .box .v small{font-size:11px;color:var(--mut);font-weight:500;letter-spacing:0}
+  .box .sub{font-size:10px;color:var(--mut);margin-top:1px}
+  .vbars{display:flex;align-items:flex-end;gap:5px;height:88px;margin-top:8px}
+  .vb{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:1px}
+  .vb i{display:block;border-radius:1.5px;background:rgba(167,139,250,.55)}
+  .vb u{display:block;border-radius:1.5px;background:#232C3C;text-decoration:none}
+  .vbl{display:flex;gap:5px;margin-top:4px}
+  .vbl span{flex:1;text-align:center;font-size:8.5px;color:var(--dim)}
+  .donut{width:96px;height:96px;border-radius:50%;margin:6px auto 0;
+    background:conic-gradient(var(--high) 0 42%,var(--med) 42% 68%,var(--habit) 68% 84%,var(--warn) 84% 93%,#39445A 93% 100%);
+    display:grid;place-items:center;position:relative}
+  .donut::after{content:"";position:absolute;width:60px;height:60px;border-radius:50%;background:var(--panel)}
+  .donut span{position:relative;z-index:2;font-size:12px;font-weight:700}
+  .lg{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;font-size:9px;color:var(--mut)}
+  .lg i{width:6px;height:6px;border-radius:2px;display:inline-block;margin-right:4px}
+  .heat{display:grid;grid-template-columns:repeat(28,1fr);gap:2px;margin-top:8px}
+  .heat i{height:11px;border-radius:2px;background:#151B26;display:block}
+</style></head>
+<body>
+
+<!-- ============ TASK DETAIL ============ -->
+<div style="position:relative"><div class="frame"><div class="screen">
+  <div class="rail">
+    <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+    <div class="nav">
+      <div class="grp">Plan</div><a><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+      <a class="on"><span class="ic">☰</span>Tasks</a><a><span class="ic">◎</span>Habits</a>
+      <div class="grp" style="margin-top:10px">Anchor</div><a><span class="ic">☾</span>Prayers</a><a><span class="ic">◔</span>Insights</a>
+    </div>
+    <div class="rank"><div class="t">Precedence</div>
+      <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+      <div><i></i>Pinned</div><div><i></i>Habits</div><div class="f"><i></i>Tasks</div></div>
+  </div>
+
+  <div class="detail">
+    <div class="dhead">
+      <div class="crumb"><b>cybersec</b> / Week 2 / Day 3</div>
+      <h2>W2D3 — Access control flaws</h2>
+      <div class="dmeta">
+        <span class="p hi">HIGH</span><span class="p me">1h 45m</span>
+        <span class="p du">due Thu 23:59</span><span class="p gr">4 units × 30m</span>
+        <span class="p gr">depends on W2D2</span><span class="p ok">scheduled</span>
+      </div>
+    </div>
+    <div class="dbody">
+      <div class="dmain">
+        <div class="sec">Subtasks <span>weights 45 + 30 + 30 = 1h 45m</span></div>
+        <div class="subrow dn"><span class="cb dn">✓</span><span class="n">IDOR vs broken object-level auth</span><span class="w">45m</span></div>
+        <div class="subrow"><span class="cb"></span><span class="n">Role matrix: escalate one field</span><span class="w">30m</span></div>
+        <div class="subrow"><span class="cb"></span><span class="n">PortSwigger lab — access control 3</span><span class="w">30m</span></div>
+        <div class="bar"><i style="width:43%;background:var(--high)"></i><i style="width:28.5%;background:#2C3650"></i><i style="width:28.5%;background:#2C3650"></i></div>
+
+        <div class="sec" style="margin-top:16px">Placement</div>
+        <div class="strip">
+          <div><i style="top:14px;height:12px"></i></div><div></div>
+          <div><i style="top:22px;height:16px;background:rgba(167,139,250,.22)"></i></div>
+          <div><i style="top:8px;height:20px"></i></div><div></div><div></div><div></div>
+        </div>
+        <div style="font-size:9.5px;color:var(--dim);margin-top:4px">Mon–Sun · solid = current, faded = earlier proposal</div>
+
+        <div class="sec" style="margin-top:16px">History</div>
+        <div class="hist"><span class="tm">Today 09:41</span><div>engine → <b>Wed 20:30</b> · W2D2 completed early, freed a High slot</div></div>
+        <div class="hist"><span class="tm">Today 06:02</span><div>engine → <b>Thu 19:00</b> · held back, Gym minimum protected</div></div>
+        <div class="hist"><span class="tm">Yesterday</span><div>you pinned <b>Wed 21:00</b> · pinned block, engine left it alone</div></div>
+        <div class="hist"><span class="tm">20 Nov</span><div>created from bulk paste · 4 units parsed</div></div>
+      </div>
+
+      <div class="dside">
+        <div class="sec">Properties</div>
+        <div class="prop"><span class="k">Effort</span><span class="v">High</span></div>
+        <div class="prop"><span class="k">Estimate</span><span class="v">1h 45m</span></div>
+        <div class="prop"><span class="k">Logged</span><span class="v">45m</span></div>
+        <div class="prop"><span class="k">Deadline</span><span class="v">Thu 23:59</span></div>
+        <div class="prop"><span class="k">Split</span><span class="v">Subtasks</span></div>
+        <div class="prop"><span class="k">Min chunk</span><span class="v">30m</span></div>
+        <div class="prop"><span class="k">Depends on</span><span class="v" style="color:var(--ok)">W2D2 ✓</span></div>
+        <div class="prop" style="border:0"><span class="k">Buffer after</span><span class="v">15m</span></div>
+
+        <div class="sec" style="margin-top:12px">Why Wednesday evening</div>
+        <div class="note">
+          <div class="whyr"><span>·</span><div><b>High</b> → office hours 10:00–18:30 are excluded</div></div>
+          <div class="whyr"><span>·</span><div><b>Prayers</b> → Isha 19:45–20:30 clears before 20:30</div></div>
+          <div class="whyr"><span>·</span><div><b>Dependency</b> → W2D2 finished at 09:20 today</div></div>
+          <div class="whyr"><span>·</span><div><b>Deadline</b> → Thu is 1h 30m over High capacity, so Wed is the safe night</div></div>
+        </div>
+
+        <div class="sec">Was blocked here</div>
+        <div class="note warn"><b>Thu 18:30 held by Gym.</b> Gym would compress to its 60m minimum and still not free enough — so this task waited instead of displacing it.</div>
+
+        <div style="display:flex;gap:6px;margin-top:10px">
+          <div class="cta" style="flex:1;justify-content:center;background:rgba(228,179,99,.13);border-color:rgba(228,179,99,.3);color:#EBC98A">Pin time</div>
+          <div class="cta" style="flex:1;justify-content:center">Split…</div>
+          <div class="cta" style="flex:1;justify-content:center">Skip</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><div class="label">Web · Task detail + placement explainer</div></div></div>
+
+<!-- ============ PRAYERS ============ -->
+<div style="position:relative"><div class="frame"><div class="screen">
+  <div class="rail">
+    <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+    <div class="nav">
+      <div class="grp">Plan</div><a><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+      <a><span class="ic">☰</span>Tasks</a><a><span class="ic">◎</span>Habits</a>
+      <div class="grp" style="margin-top:10px">Anchor</div>
+      <a class="on"><span class="ic">☾</span>Prayers</a><a><span class="ic">◔</span>Insights</a>
+    </div>
+    <div class="rank"><div class="t">Precedence</div>
+      <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+      <div><i></i>Pinned</div><div><i></i>Habits</div><div><i></i>Tasks</div></div>
+  </div>
+
+  <div class="pw">
+    <div class="top">
+      <div><h1>Prayers</h1><div class="s">Kolkata · Karachi method · Asia/Kolkata · 0 tasks can overlap</div></div>
+      <div class="cta" style="margin-left:auto">⚙ Edit times</div>
+    </div>
+
+    <div class="pwrap">
+      <div class="pl">
+        <div class="sec">Saturday 22 November <span>5 of 5 scheduled · hard blocks</span></div>
+
+        <div class="prow next"><div class="nm">Asr</div><div class="tm">15:35</div><div class="du">25m</div>
+          <div class="kd">next · in 1h 42m</div><span class="tg fx">fixed</span></div>
+        <div class="prow"><div class="nm">Dhuhr</div><div class="tm">13:00</div><div class="du">30m</div>
+          <div class="kd">done</div><span class="tg cm">computed +30</span></div>
+        <div class="prow"><div class="nm">Fajr</div><div class="tm">05:15</div><div class="du">30m</div>
+          <div class="kd">done</div><span class="tg fx">fixed</span></div>
+        <div class="prow"><div class="nm">Maghrib</div><div class="tm">17:05</div><div class="du">20m</div>
+          <div class="kd">after sunset · 17:02 computed</div><span class="tg cm">computed</span></div>
+        <div class="prow"><div class="nm">Isha</div><div class="tm">19:45</div><div class="du">45m</div>
+          <div class="kd">last block of the day</div><span class="tg fx">fixed</span></div>
+
+        <div class="sec" style="margin-top:14px">Next 7 days <span>fixed vs computed drift</span></div>
+        <div class="cal">
+          <div class="today"><b>Sat 22</b>F 05:15<br>D 13:00<br>A 15:35<br>M 17:05<br>I 19:45</div>
+          <div><b>Sun 23</b>F 05:15<br>D 13:00<br>A 15:33<br>M 17:04<br>I 19:44</div>
+          <div><b>Mon 24</b>F 05:16<br>D 13:00<br>A 15:32<br>M 17:03<br>I 19:43</div>
+          <div><b>Tue 25</b>F 05:16<br>D 13:00<br>A 15:30<br>M 17:03<br>I 19:43</div>
+          <div><b>Wed 26</b>F 05:17<br>D 13:00<br>A 15:28<br>M 17:02<br>I 19:42</div>
+          <div><b>Thu 27</b>F 05:17<br>D 13:00<br>A 15:27<br>M 17:02<br>I 19:42</div>
+          <div><b>Fri 28</b>F 05:18<br><span style="color:var(--prayer)">J 12:45 → 13:45</span><br>A 15:25<br>M 17:01<br>I 19:41</div>
+        </div>
+      </div>
+
+      <div class="pl" style="border:0;background:var(--panel)">
+        <div class="sec">Rule</div>
+        <div class="note ok"><b>Prayers outrank everything except meetings.</b> A task never lands on one, and a prayer never moves for a habit, a pinned block or a deadline.</div>
+
+        <div class="sec" style="margin-top:12px">What each prayer is</div>
+        <div class="prop"><span class="k">Fajr</span><span class="v">fixed 05:15 · 30m</span></div>
+        <div class="prop"><span class="k">Dhuhr</span><span class="v">fixed 13:00 · 30m</span></div>
+        <div class="prop"><span class="k">Jummah (Fri)</span><span class="v">12:45 · 60m</span></div>
+        <div class="prop"><span class="k">Asr</span><span class="v">fixed 15:35 · 25m</span></div>
+        <div class="prop"><span class="k">Maghrib</span><span class="v">computed ±10 · 20m</span></div>
+        <div class="prop" style="border:0"><span class="k">Isha</span><span class="v">fixed 19:45 · 45m</span></div>
+
+        <div class="sec" style="margin-top:12px">Notifications</div>
+        <div class="note"><b>Adhan push</b> at the start of each block, plus a 10m pre-alert you can set per prayer.</div>
+        <div class="note warn"><b>Drift guard.</b> Computed Maghrib is checked against the library at build time — a &gt;10m gap raises a flag here instead of silently moving your evening.</div>
+
+        <div class="sec" style="margin-top:12px">Location &amp; method</div>
+        <div style="font-size:10.5px;color:var(--mut);line-height:1.9">
+          Kolkata, West Bengal · 22.57°N 88.36°E<br>
+          University of Islamic Sciences, Karachi<br>
+          Timezone <span style="color:var(--tx)">Asia/Kolkata (IST)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><div class="label">Web · Prayers</div></div></div>
+
+<!-- ============ INSIGHTS ============ -->
+<div style="position:relative"><div class="frame"><div class="screen">
+  <div class="rail">
+    <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+    <div class="nav">
+      <div class="grp">Plan</div><a><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+      <a><span class="ic">☰</span>Tasks</a><a><span class="ic">◎</span>Habits</a>
+      <div class="grp" style="margin-top:10px">Anchor</div><a><span class="ic">☾</span>Prayers</a><a class="on"><span class="ic">◔</span>Insights</a>
+    </div>
+    <div class="rank"><div class="t">Precedence</div>
+      <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+      <div><i></i>Pinned</div><div><i></i>Habits</div><div><i></i>Tasks</div></div>
+  </div>
+
+  <div style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+    <div class="top">
+      <div><h1>Insights</h1><div class="s">This week · planned vs actually done</div></div>
+      <div class="cta" style="margin-left:auto">Week ▾</div>
+    </div>
+    <div class="ins">
+      <div class="grid3">
+        <div class="box"><div class="k">Adherence</div><div class="v" style="color:var(--ok)">78<small>%</small></div>
+          <div class="sub">12h 40m of 16h 15m planned</div></div>
+        <div class="box"><div class="k">Habits kept</div><div class="v">87<small>%</small></div>
+          <div class="sub">20 of 23 occurrences</div></div>
+        <div class="box"><div class="k">Compressions</div><div class="v" style="color:var(--warn)">9</div>
+          <div class="sub">habits shrunk, none skipped</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.35fr 1fr 1fr;gap:11px">
+        <div class="box">
+          <div class="k">Planned vs done · by day</div>
+          <div class="vbars">
+            <div class="vb"><i style="height:54px"></i><u style="height:12px"></u></div>
+            <div class="vb"><i style="height:46px"></i><u style="height:22px"></u></div>
+            <div class="vb"><i style="height:62px"></i><u style="height:8px"></u></div>
+            <div class="vb"><i style="height:38px"></i><u style="height:26px"></u></div>
+            <div class="vb"><i style="height:58px"></i><u style="height:14px"></u></div>
+            <div class="vb"><i style="height:40px"></i><u style="height:18px"></u></div>
+            <div class="vb"><i style="height:50px"></i><u style="height:10px"></u></div>
+          </div>
+          <div class="vbl"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+          <div style="font-size:9px;color:var(--dim);margin-top:5px"><span style="color:#7b62c9">▬</span> planned &nbsp; <span style="color:#4a566b">▬</span> gap to plan</div>
+        </div>
+
+        <div class="box">
+          <div class="k">Where the week went</div>
+          <div class="donut"><span>16h</span></div>
+          <div class="lg">
+            <span><i style="background:var(--high)"></i>sys design 42%</span>
+            <span><i style="background:var(--med)"></i>cybersec 26%</span>
+            <span><i style="background:var(--habit)"></i>habits 16%</span>
+            <span><i style="background:var(--warn)"></i>admin 9%</span>
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="k">Backlog debt</div>
+          <div class="v" style="color:var(--warn)">14</div>
+          <div class="sub">tasks with no est or deadline</div>
+          <div style="margin-top:8px">
+            <div class="k" style="margin-bottom:4px">Overdue trend</div>
+            <div class="vbars" style="height:44px">
+              <div class="vb"><i style="height:16px;background:rgba(240,113,120,.5)"></i></div>
+              <div class="vb"><i style="height:24px;background:rgba(240,113,120,.5)"></i></div>
+              <div class="vb"><i style="height:12px;background:rgba(240,113,120,.5)"></i></div>
+              <div class="vb"><i style="height:30px;background:rgba(240,113,120,.5)"></i></div>
+              <div class="vb"><i style="height:20px;background:rgba(240,113,120,.5)"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="box" style="margin-top:11px">
+        <div class="k">Habit consistency · last 4 weeks</div>
+        <div class="heat">
+          <i style="background:rgba(69,200,184,.8)"></i><i style="background:rgba(69,200,184,.6)"></i><i style="background:rgba(69,200,184,.9)"></i>
+          <i style="background:rgba(69,200,184,.4)"></i><i style="background:rgba(69,200,184,.8)"></i><i style="background:rgba(69,200,184,.9)"></i>
+          <i style="background:#151B26"></i>
+          <i style="background:rgba(69,200,184,.7)"></i><i style="background:rgba(69,200,184,.9)"></i><i style="background:rgba(69,200,184,.8)"></i>
+          <i style="background:rgba(69,200,184,.5)"></i><i style="background:rgba(69,200,184,.9)"></i><i style="background:rgba(69,200,184,.6)"></i>
+          <i style="background:#151B26"></i>
+          <i style="background:rgba(69,200,184,.9)"></i><i style="background:rgba(69,200,184,.8)"></i><i style="background:rgba(69,200,184,.7)"></i>
+          <i style="background:rgba(69,200,184,.9)"></i><i style="background:rgba(69,200,184,.9)"></i><i style="background:rgba(69,200,184,.4)"></i>
+          <i style="background:#151B26"></i>
+          <i style="background:rgba(69,200,184,.8)"></i><i style="background:rgba(69,200,184,.6)"></i><i style="background:rgba(69,200,184,.9)"></i>
+          <i style="background:rgba(69,200,184,.7)"></i><i style="background:rgba(69,200,184,.9)"></i><i style="background:rgba(69,200,184,.8)"></i>
+          <i style="background:#151B26"></i>
+        </div>
+        <div style="font-size:9px;color:var(--dim);margin-top:5px">darker = full habit, lighter = compressed to minimum, empty = skipped</div>
+      </div>
+    </div>
+  </div>
+</div><div class="label">Web · Insights</div></div></div>
+
+</body></html>

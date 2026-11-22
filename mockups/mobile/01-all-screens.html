@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Mobile — full set</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0A0C11;--panel:#11141C;--p2:#151925;--line:#1D2230;--tx:#E7EBF3;--mut:#7A8699;--dim:#4A5468;
+        --prayer:#E4B363;--habit:#45C8B8;--high:#A78BFA;--med:#5B9BF8;--low:#6B7A90;--ok:#3DD68C;--warn:#E9A23B;--del:#F07178}
+  body{background:#05070A;font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;color:var(--tx);
+       -webkit-font-smoothing:antialiased;display:flex;gap:20px;padding:20px}
+  .phone{width:390px;height:812px;background:var(--bg);border-radius:34px;border:1px solid #232A38;
+         overflow:hidden;position:relative;flex-shrink:0;display:flex;flex-direction:column}
+  .st{height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:10px;color:var(--dim)}
+  .hd{padding:0 16px 10px;display:flex;align-items:flex-end;justify-content:space-between}
+  .hd h2{font-size:20px;font-weight:660;letter-spacing:-.5px}
+  .hd .s{font-size:10.5px;color:var(--mut);margin-top:1px}
+  .pill{font-size:9.5px;color:var(--habit);background:rgba(69,200,184,.10);border:1px solid rgba(69,200,184,.24);
+        padding:3px 8px;border-radius:20px;font-weight:750}
+  .pc{margin:0 12px 9px;background:linear-gradient(150deg,#1D190F,#12151D);border:1px solid #33280F;
+      border-radius:12px;padding:9px 11px;display:flex;align-items:center;gap:10px}
+  .pc .l{font-size:8px;letter-spacing:1px;text-transform:uppercase;color:#8A7448;font-weight:800}
+  .pc .n{font-size:16px;font-weight:660;color:var(--prayer);margin:1px 0}
+  .pc .t{font-size:10px;color:var(--mut)}
+  .ring{width:40px;height:40px;border-radius:50%;border:2.5px solid #3A2D14;border-top-color:var(--prayer);
+        display:grid;place-items:center;font-size:9px;color:var(--prayer);font-weight:750}
+  .sec{font-size:8.5px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);font-weight:800;
+       padding:8px 16px 6px;display:flex;justify-content:space-between;align-items:center}
+  .sec a{color:#6E8DC0;font-size:9px;text-decoration:none;letter-spacing:0;text-transform:none;font-weight:700}
+  .tl{padding:0 12px;flex:1;overflow:hidden}
+  .sl{display:flex;gap:8px;margin-bottom:6px}
+  .sl .h{width:34px;font-size:9px;color:var(--dim);text-align:right;padding-top:7px;flex-shrink:0}
+  .bx{flex:1;border-radius:8px;padding:6px 9px;border-left:2.5px solid;font-size:11px}
+  .bx .t{font-weight:630;font-size:11.5px}
+  .bx .m{font-size:9px;opacity:.72;margin-top:1px}
+  .bx.hi{background:rgba(167,139,250,.13);border-color:var(--high);color:#D5C8FE}
+  .bx.me{background:rgba(91,155,248,.12);border-color:var(--med);color:#C2D8FD}
+  .bx.ha{background:rgba(69,200,184,.09);border-color:var(--habit);color:#A9E8E0}
+  .bx.pr{background:rgba(228,179,99,.15);border-color:var(--prayer);color:#F5E0BA;padding:3px 9px;font-size:10px;font-weight:750}
+  .bx.lo{background:rgba(107,122,144,.12);border-color:var(--low);color:#AEBACB}
+  .bx.now{border-color:var(--ok);box-shadow:0 0 0 1px rgba(61,214,140,.28)}
+  .bx .pg{height:2px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:4px;overflow:hidden}
+  .bx .pg i{display:block;height:100%;background:var(--ok)}
+  .nav{position:absolute;left:0;right:0;bottom:0;height:58px;background:rgba(13,16,22,.97);border-top:1px solid var(--line);
+       display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:6px}
+  .nav div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:8.5px;color:var(--dim);font-weight:650}
+  .nav div .ic{font-size:14px}
+  .nav div.on{color:var(--prayer)}
+  .fab{position:absolute;right:14px;bottom:70px;width:48px;height:48px;border-radius:16px;
+       background:linear-gradient(150deg,#E4B363,#C08F3C);display:grid;place-items:center;font-size:22px;color:#241A08;font-weight:600}
+
+  /* agenda */
+  .ag{padding:0 12px;flex:1;overflow:hidden}
+  .agday{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);font-weight:800;padding:6px 4px 4px;display:flex;gap:6px;align-items:center}
+  .agday.t{color:var(--prayer)}
+  .agrow{display:flex;gap:8px;align-items:center;padding:5px 6px;border-radius:6px;font-size:11px}
+  .agrow .h{width:34px;font-size:9px;color:var(--dim);flex-shrink:0;font-variant-numeric:tabular-nums}
+  .agrow .d{width:3px;height:16px;border-radius:2px;flex-shrink:0}
+  .agrow .n{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .agrow .e{font-size:9px;color:var(--dim)}
+
+  /* tasks */
+  .tl2{padding:0 12px;flex:1;overflow:hidden}
+  .task{background:var(--p2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin-bottom:6px}
+  .task .r1{display:flex;gap:6px;align-items:center}
+  .task .t{font-size:11.5px;font-weight:630;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .task .r2{display:flex;gap:5px;align-items:center;margin-top:4px;font-size:9px;color:var(--mut)}
+  .p{font-size:8px;padding:1px 4.5px;border-radius:3px;font-weight:800}
+  .p.hi{background:rgba(167,139,250,.16);color:#BFA9FD}.p.me{background:rgba(91,155,248,.16);color:#8FBDF9}
+  .p.lo{background:rgba(107,122,144,.18);color:#9AA9BE}.p.du{background:rgba(233,162,59,.16);color:#EFBB6E}
+  .p.gr{background:#1C2331;color:#8B9AB1}
+  .cap{position:absolute;left:10px;right:10px;bottom:64px;background:var(--p2);border:1px solid #2A3446;border-radius:12px;
+       padding:9px 11px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--dim)}
+
+  /* habits tick */
+  .hk{padding:0 12px;flex:1;overflow:hidden}
+  .hcard{background:var(--p2);border:1px solid var(--line);border-radius:11px;padding:9px 11px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+  .hcard.done{border-color:#1F3A2C;background:#0C1512}
+  .hcard.due{border-color:#3A2C14}
+  .hck{width:24px;height:24px;border-radius:8px;border:1.5px solid #37425A;display:grid;place-items:center;font-size:12px;color:#0A0C11;flex-shrink:0}
+  .hck.dn{background:var(--habit);border-color:var(--habit)}
+  .hcard .n{font-size:12px;font-weight:630;flex:1}
+  .hcard .n .sub{display:block;font-size:9px;color:var(--mut);font-weight:500;margin-top:1px}
+  .hcard .st{display:flex;gap:2px}
+  .hcard .st i{width:4px;height:4px;border-radius:1px;background:#242C3B}
+  .hcard .st i.f{background:var(--habit)}
+  .skip{font-size:9px;color:var(--dim);border:1px solid #252E3D;border-radius:5px;padding:2px 6px;font-weight:650}
+
+  /* prayer screen */
+  .pw{padding:0 12px;flex:1;overflow:hidden}
+  .pr{display:flex;align-items:center;gap:10px;background:var(--p2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;margin-bottom:5px}
+  .pr.nx{background:linear-gradient(150deg,#1D190F,#12151D);border-color:#33280F}
+  .pr .nm{width:66px;font-size:12px;font-weight:640}
+  .pr.nx .nm{color:var(--prayer)}
+  .pr .tm{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;width:52px}
+  .pr .d{font-size:9px;color:var(--dim);flex:1}
+  .pr .g{font-size:8px;padding:1px 4px;border-radius:3px;background:#242C3B;color:#9AA9BE;font-weight:750}
+  .bigring{width:132px;height:132px;border-radius:50%;border:5px solid #2A2415;border-top-color:var(--prayer);border-right-color:var(--prayer);
+           margin:6px auto;display:grid;place-items:center;text-align:center}
+  .bigring .k{font-size:8px;letter-spacing:1px;color:#8A7448;font-weight:800;text-transform:uppercase}
+  .bigring .v{font-size:22px;font-weight:660;color:var(--prayer);letter-spacing:-.5px}
+  .bigring .s{font-size:9px;color:var(--mut)}
+</style></head>
+<body>
+
+<!-- 1 TODAY -->
+<div class="phone">
+  <div class="st"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+  <div class="hd"><div><h2>Today</h2><div class="s">Sat 22 Nov · 3h 25m left</div></div><div class="pill">◆ 14</div></div>
+  <div class="pc"><div style="flex:1"><div class="l">Next prayer</div><div class="n">Asr</div><div class="t">15:35 · in 1h 42m</div></div><div class="ring">82%</div></div>
+
+  <div class="sec">Now <a>+15m · +30m</a></div>
+  <div class="tl">
+    <div class="sl"><div class="h">10:00</div><div class="bx hi now"><div class="t">LR1: Limits</div>
+      <div class="m">1h 10m left of 2h · 55m logged</div><div class="pg"><i style="width:45%"></i></div></div></div>
+    <div class="sl"><div class="h">13:00</div><div class="bx pr">☾ Dhuhr · 13:00</div></div>
+    <div class="sl"><div class="h">13:30</div><div class="bx lo"><div class="t">Inbox triage</div><div class="m">20m · shrunk from 30m</div></div></div>
+    <div class="sl"><div class="h">15:35</div><div class="bx pr">☾ Asr · 15:35</div></div>
+    <div class="sl"><div class="h">16:10</div><div class="bx me"><div class="t">W1D5: Scanning</div><div class="m">1h 25m · compressed from 2h</div></div></div>
+    <div class="sl"><div class="h">18:30</div><div class="bx ha"><div class="t">Skincare PM</div><div class="m">10m · min protected</div></div></div>
+    <div class="sl"><div class="h">20:30</div><div class="bx hi"><div class="t">DB2: Sharding</div><div class="m">1h 30m · High</div></div></div>
+  </div>
+
+  <div class="sec">Engine notice</div>
+  <div style="margin:0 12px;background:#0C1710;border:1px solid #16311F;border-radius:9px;padding:7px 9px;font-size:9.5px;color:#8EDCB0;line-height:1.5">
+    <b>Compressed, not displaced.</b> Scanning 2h → 1h 25m so Skincare kept its minimum.
+  </div>
+
+  <div class="fab">+</div>
+  <div class="nav"><div class="on"><span class="ic">◐</span>Today</div><div><span class="ic">◫</span>Week</div>
+    <div><span class="ic">☰</span>Tasks</div><div><span class="ic">◎</span>Habits</div><div><span class="ic">☾</span>Prayer</div></div>
+</div>
+
+<!-- 2 WEEK / AGENDA -->
+<div class="phone">
+  <div class="st"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+  <div class="hd"><div><h2>Week</h2><div class="s">22–28 Nov · 16h 15m planned</div></div>
+    <div class="pill" style="color:#9EC5FF;background:#1B2536;border-color:#2A3B58">⇄ 3</div></div>
+
+  <div class="ag">
+    <div class="agday t">Sat 22 · today <span style="color:var(--ok);letter-spacing:0;text-transform:none;font-weight:600">2h 45m done</span></div>
+    <div class="agrow"><span class="h">06:00</span><span class="d" style="background:var(--habit)"></span><span class="n">Gym</span><span class="e">3h ✓</span></div>
+    <div class="agrow"><span class="h">10:00</span><span class="d" style="background:var(--high)"></span><span class="n">LR1: Limits</span><span class="e">2h</span></div>
+    <div class="agrow"><span class="h">13:00</span><span class="d" style="background:var(--prayer)"></span><span class="n">Dhuhr</span><span class="e">30m</span></div>
+    <div class="agrow"><span class="h">16:10</span><span class="d" style="background:var(--med)"></span><span class="n">W1D5: Scanning</span><span class="e">1h 25m</span></div>
+    <div class="agrow"><span class="h">20:30</span><span class="d" style="background:var(--high)"></span><span class="n">DB2: Sharding</span><span class="e">1h 30m</span></div>
+
+    <div class="agday">Sun 23</div>
+    <div class="agrow"><span class="h">07:00</span><span class="d" style="background:var(--med)"></span><span class="n">sys design practice</span><span class="e">2h 30m</span></div>
+    <div class="agrow"><span class="h">10:00</span><span class="d" style="background:var(--high)"></span><span class="n">W1 Review</span><span class="e">2h</span></div>
+    <div class="agrow"><span class="h">19:00</span><span class="d" style="background:var(--habit)"></span><span class="n">Deep work ≥ 2h</span><span class="e">2h</span></div>
+
+    <div class="agday">Mon 24 <span style="color:var(--warn);letter-spacing:0;text-transform:none;font-weight:600">1 deadline</span></div>
+    <div class="agrow"><span class="h">06:00</span><span class="d" style="background:var(--habit)"></span><span class="n">Gym</span><span class="e">3h</span></div>
+    <div class="agrow"><span class="h">10:00</span><span class="d" style="background:#232b3a"></span><span class="n">Office</span><span class="e">8h 30m</span></div>
+    <div class="agrow"><span class="h">20:00</span><span class="d" style="background:var(--high)"></span><span class="n">DB2: Sharding</span><span class="e">1h 30m ⟵ due</span></div>
+
+    <div class="agday">Tue 25</div>
+    <div class="agrow"><span class="h">10:00</span><span class="d" style="background:#232b3a"></span><span class="n">Office</span><span class="e">8h 30m</span></div>
+    <div class="agrow"><span class="h">18:30</span><span class="d" style="background:var(--high)"></span><span class="n">W1D6: Enumeration</span><span class="e">2h ⟵ due</span></div>
+
+    <div class="agday" style="color:var(--warn)">Thu 27 · flagged: 1h 30m short</div>
+    <div class="agrow"><span class="h">10:00</span><span class="d" style="background:#232b3a"></span><span class="n">Office</span><span class="e">8h 30m</span></div>
+    <div class="agrow"><span class="h">18:30</span><span class="d" style="background:var(--habit)"></span><span class="n">Gym (min 60m)</span><span class="e">would shrink</span></div>
+  </div>
+
+  <div class="sec">Overload</div>
+  <div style="margin:0 12px 6px;background:#171208;border:1px solid #3A2C14;border-radius:9px;padding:7px 9px;font-size:9.5px;color:#D9B47A;line-height:1.5">
+    Thu needs 3h of High, has 1h 30m. <b style="color:#F0BE71">Push to next week? Skip a habit? Make time?</b>
+  </div>
+  <div class="nav"><div><span class="ic">◐</span>Today</div><div class="on"><span class="ic">◫</span>Week</div>
+    <div><span class="ic">☰</span>Tasks</div><div><span class="ic">◎</span>Habits</div><div><span class="ic">☾</span>Prayer</div></div>
+</div>
+
+<!-- 3 TASKS -->
+<div class="phone">
+  <div class="st"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+  <div class="hd"><div><h2>Tasks</h2><div class="s">6 inbox · 2 overdue</div></div><div class="pill" style="color:#9AA9BE;background:#1C2331;border-color:#2A3446">Inbox ▾</div></div>
+
+  <div class="tl2">
+    <div class="sec" style="padding:4px 2px 6px;color:var(--warn)">Overdue</div>
+    <div class="task" style="border-color:#3A2C14">
+      <div class="r1"><span class="t">W1D4: Recon</span><span class="p hi">HIGH</span></div>
+      <div class="r2"><span>2h</span><span>•</span><span style="color:var(--warn)">2 days late</span><span>•</span><span>3 units</span></div>
+    </div>
+    <div class="task" style="border-color:#3A2C14">
+      <div class="r1"><span class="t">CDS1: Caching</span><span class="p me">MED</span></div>
+      <div class="r2"><span>1h of 1h 45m left</span><span>•</span><span style="color:var(--warn)">yesterday</span></div>
+    </div>
+
+    <div class="sec" style="padding:10px 2px 6px">Inbox</div>
+    <div class="task">
+      <div class="r1"><span class="t">DB2: Sharding</span><span class="p hi">HIGH</span><span class="p du">MON</span></div>
+      <div class="r2"><span>1h 30m</span><span>•</span><span>3 units × 30m</span><span>•</span><span>parsed</span></div>
+    </div>
+    <div class="task">
+      <div class="r1"><span class="t">W1D6: Enumeration</span><span class="p hi">HIGH</span></div>
+      <div class="r2"><span>2h</span><span>•</span><span>after W1D5</span><span>•</span><span style="color:var(--warn)">blocks Thu</span></div>
+    </div>
+    <div class="task">
+      <div class="r1"><span class="t">Read: rate limiting</span><span class="p lo">LOW</span></div>
+      <div class="r2"><span>30m</span><span>•</span><span>atomic</span></div>
+    </div>
+    <div class="task" style="border-color:#3A2C14">
+      <div class="r1"><span class="t">Fix notes template</span><span class="p lo">LOW</span></div>
+      <div class="r2"><span style="color:var(--del)">no estimate — never scheduled</span></div>
+    </div>
+
+    <div class="sec" style="padding:10px 2px 6px">Swipe a task</div>
+    <div style="display:flex;gap:5px;font-size:8.5px;color:var(--mut)">
+      <span style="background:#1B2E24;color:#8EDCB0;padding:3px 7px;border-radius:5px;font-weight:700">→ Schedule</span>
+      <span style="background:#222A3A;padding:3px 7px;border-radius:5px;font-weight:700">→ Pin</span>
+      <span style="background:#2A1B1D;color:#F09AA0;padding:3px 7px;border-radius:5px;font-weight:700">← Backlog</span>
+    </div>
+  </div>
+
+  <div class="cap">＋ 2h DBMS revision before friday, high</div>
+  <div class="nav"><div><span class="ic">◐</span>Today</div><div><span class="ic">◫</span>Week</div>
+    <div class="on"><span class="ic">☰</span>Tasks</div><div><span class="ic">◎</span>Habits</div><div><span class="ic">☾</span>Prayer</div></div>
+</div>
+
+<!-- 4 HABITS TICK -->
+<div class="phone">
+  <div class="st"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+  <div class="hd"><div><h2>Habits</h2><div class="s">3 of 5 done · 87% this week</div></div><div class="pill">◆ 14</div></div>
+
+  <div class="pc" style="background:#0C1710;border-color:#16311F">
+    <div style="flex:1"><div class="l" style="color:#4E8A68">Rule</div>
+      <div style="font-size:10.5px;color:#8EDCB0;line-height:1.45;margin-top:2px">Under pressure habits <b>shrink to minimum</b>, never get displaced. Skip an occurrence to release the time.</div></div>
+  </div>
+
+  <div class="hk">
+    <div class="hcard done"><div class="hck dn">✓</div>
+      <div class="n">Gym<span class="sub">3h logged · min 60m</span></div>
+      <div class="st"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div></div>
+
+    <div class="hcard done"><div class="hck dn">✓</div>
+      <div class="n">Freshup + AM skincare<span class="sub">45m · no compression</span></div>
+      <div class="st"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></div></div>
+
+    <div class="hcard due"><div class="hck"></div>
+      <div class="n">Skincare PM<span class="sub" style="color:var(--warn)">18:30 · compressed 3× this week</span></div>
+      <div class="skip">Skip</div></div>
+
+    <div class="hcard"><div class="hck"></div>
+      <div class="n">Deep work ≥ 2h<span class="sub">1h 45m logged · 15m to count</span></div>
+      <div class="skip">+15m</div></div>
+
+    <div class="hcard" style="border-style:dashed;opacity:.55"><div class="hck"></div>
+      <div class="n">Arabic 20m<span class="sub">draft · needs a window</span></div></div>
+
+    <div class="sec" style="padding:12px 2px 6px">If a High task needs this slot</div>
+    <div style="display:flex;gap:5px;font-size:8.5px">
+      <span style="flex:1;background:#151925;border:1px solid var(--line);border-radius:6px;padding:6px;text-align:center;color:#9AA9BE;font-weight:650">1 · Shrink to min</span>
+      <span style="flex:1;background:#171208;border:1px solid #3A2C14;border-radius:6px;padding:6px;text-align:center;color:#D9B47A;font-weight:650">2 · Notify</span>
+      <span style="flex:1;background:#0C1710;border:1px solid #16311F;border-radius:6px;padding:6px;text-align:center;color:#8EDCB0;font-weight:650">3 · Skip = free</span>
+    </div>
+  </div>
+
+  <div class="nav"><div><span class="ic">◐</span>Today</div><div><span class="ic">◫</span>Week</div>
+    <div><span class="ic">☰</span>Tasks</div><div class="on"><span class="ic">◎</span>Habits</div><div><span class="ic">☾</span>Prayer</div></div>
+</div>
+
+<!-- 5 PRAYER -->
+<div class="phone">
+  <div class="st"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+  <div class="hd"><div><h2>Prayer</h2><div class="s">Kolkata · Karachi</div></div><div class="pill" style="color:#9AA9BE;background:#1C2331;border-color:#2A3446">⚙</div></div>
+
+  <div class="pw">
+    <div class="bigring"><div><div class="k">Next · Asr</div><div class="v">15:35</div><div class="s">in 1h 42m</div></div></div>
+
+    <div class="pr nx"><span class="nm">Asr</span><span class="tm">15:35</span><span class="d">25m · fixed</span><span class="g">fixed</span></div>
+    <div class="pr"><span class="nm">Dhuhr</span><span class="tm">13:00</span><span class="d">done · 30m</span><span class="g">fixed</span></div>
+    <div class="pr"><span class="nm">Fajr</span><span class="tm">05:15</span><span class="d">done · 30m</span><span class="g">fixed</span></div>
+    <div class="pr"><span class="nm">Maghrib</span><span class="tm">17:05</span><span class="d">20m · sunset 17:02</span><span class="g" style="background:rgba(69,200,184,.14);color:#8FDCD1">computed</span></div>
+    <div class="pr"><span class="nm">Isha</span><span class="tm">19:45</span><span class="d">45m · ends the day</span><span class="g">fixed</span></div>
+
+    <div class="sec" style="padding:10px 2px 6px">Tomorrow</div>
+    <div class="pr"><span class="nm">Fajr</span><span class="tm">05:15</span><span class="d">Sun 23</span><span class="g">fixed</span></div>
+    <div class="pr"><span class="nm">Dhuhr</span><span class="tm">13:00</span><span class="d">Sun 23</span><span class="g">fixed</span></div>
+
+    <div style="margin:9px 0 0;background:#101620;border:1px solid #1E2836;border-radius:9px;padding:7px 9px;font-size:9.5px;color:#93A5BC;line-height:1.5">
+      <b style="color:#C2D2E6">Prayers outrank habits and tasks.</b> Adhan notification at the start of each block.
+    </div>
+  </div>
+
+  <div class="nav"><div><span class="ic">◐</span>Today</div><div><span class="ic">◫</span>Week</div>
+    <div><span class="ic">☰</span>Tasks</div><div><span class="ic">◎</span>Habits</div><div class="on"><span class="ic">☾</span>Prayer</div></div>
+</div>
+
+</body></html>

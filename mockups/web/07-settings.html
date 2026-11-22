@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Settings</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0A0C11;--panel:#11141C;--p2:#151925;--line:#1D2230;--tx:#E7EBF3;--mut:#7A8699;--dim:#4A5468;
+        --prayer:#E4B363;--habit:#45C8B8;--high:#A78BFA;--med:#5B9BF8;--low:#6B7A90;--ok:#3DD68C;--warn:#E9A23B;--del:#F07178;--fun:#F472B6;--fam:#7DD3A0;--learn:#60A5FA;--arab:#C4B5FD}
+  body{background:#05070A;font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;color:var(--tx);
+       -webkit-font-smoothing:antialiased;display:flex;gap:26px;padding:26px}
+  .frame{width:1040px;height:648px;overflow:hidden;border-radius:12px;border:1px solid #232A38;background:var(--bg);position:relative}
+  .screen{width:1440px;height:900px;transform:scale(.7222);transform-origin:top left;background:var(--bg);display:flex}
+  .label{position:absolute;bottom:-22px;left:2px;font-size:11px;color:#5A6577;letter-spacing:.6px;text-transform:uppercase;font-weight:700}
+  .rail{width:206px;border-right:1px solid var(--line);padding:16px 11px;display:flex;flex-direction:column;gap:16px;background:var(--panel);flex-shrink:0}
+  .brand{display:flex;align-items:center;gap:9px;padding:0 6px}
+  .mark{width:25px;height:25px;border-radius:7px;background:linear-gradient(145deg,#E4B363,#B9833A);display:grid;place-items:center;font-size:12px;color:#1a1206;font-weight:800}
+  .brand b{font-size:13.5px;font-weight:650}
+  .nav{display:flex;flex-direction:column;gap:1px}
+  .nav a{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;color:var(--mut);font-size:12px;font-weight:500;text-decoration:none}
+  .nav a.on{background:var(--p2);color:var(--tx)}
+  .nav a .ic{width:14px;text-align:center;font-size:11.5px}
+  .grp{font-size:9px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);padding:0 9px 4px;font-weight:800}
+  .rank{margin-top:auto;border-top:1px solid var(--line);padding-top:10px}
+  .rank .t{font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between}
+  .rank .t a{color:#6E8DC0;text-decoration:none;letter-spacing:0;text-transform:none;font-size:9px}
+  .rank div{font-size:10px;color:#6B7688;padding:2.5px 0;display:flex;gap:6px;align-items:center}
+  .rank div i{width:4px;height:4px;border-radius:50%;background:#2E3849;flex-shrink:0}
+  .rank div.f{color:var(--tx)}.rank div.f i{background:var(--prayer)}
+
+  .wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .top{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line)}
+  .top h1{font-size:15px;font-weight:650;letter-spacing:-.3px}
+  .top .s{font-size:10.5px;color:var(--mut);margin-top:1px}
+  .saved{margin-left:auto;font-size:10px;color:var(--ok);background:rgba(61,214,140,.10);border:1px solid #17331F;
+         padding:4px 9px;border-radius:6px;font-weight:700}
+  .body2{flex:1;display:grid;grid-template-columns:184px 1fr;overflow:hidden}
+  .snav{padding:12px 9px;border-right:1px solid var(--line);background:var(--panel)}
+  .snav a{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;font-size:11.5px;color:var(--mut);
+          text-decoration:none;margin-bottom:1px}
+  .snav a.on{background:var(--p2);color:var(--tx);font-weight:600}
+  .snav .ic{font-size:11px;width:13px;text-align:center}
+  .snav .sep{font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);font-weight:800;padding:10px 9px 5px}
+  .pane{padding:14px 18px;overflow:hidden}
+  .sec{font-size:8.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);font-weight:800;margin-bottom:8px;
+       display:flex;justify-content:space-between;align-items:center}
+  .sec span{text-transform:none;letter-spacing:0;font-weight:600;color:#5E6B80;font-size:9.5px}
+
+  /* precedence editor */
+  .prow{display:flex;align-items:center;gap:10px;background:var(--p2);border:1px solid var(--line);border-radius:8px;
+        padding:9px 11px;margin-bottom:5px}
+  .prow .hd{color:var(--dim);font-size:12px;letter-spacing:-1px;cursor:grab}
+  .prow .n{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:11px;font-weight:800;
+           background:#222B3A;color:#B9C6DA;flex-shrink:0}
+  .prow .t{font-size:12px;font-weight:620;width:132px}
+  .prow .d{font-size:9.5px;color:var(--mut);flex:1;line-height:1.4}
+  .prow .tg{font-size:8.5px;padding:2px 6px;border-radius:4px;background:#1C2331;color:#8B9AB1;font-weight:750}
+  .prow.locked{opacity:.55;border-style:dashed}
+  .warn-inline{background:#171208;border:1px solid #3A2C14;border-radius:7px;padding:7px 10px;font-size:9.5px;
+               color:#D9B47A;margin-top:8px;line-height:1.5}
+  .warn-inline b{color:#F3DCB2}
+
+  /* calendars */
+  .acct{background:var(--p2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;display:flex;align-items:center;gap:11px;margin-bottom:11px}
+  .acct .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(145deg,#4285F4,#34A853);display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff}
+  .acct .n{font-size:11.5px;font-weight:620}
+  .acct .d{font-size:9.5px;color:var(--mut);margin-top:1px}
+  .acct .st{margin-left:auto;font-size:9px;font-weight:800;color:#6FE3AB;background:rgba(61,214,140,.12);
+            border:1px solid #17331F;padding:3px 8px;border-radius:5px}
+  .acct .btn{font-size:9.5px;font-weight:700;color:#9EC5FF;background:#1B2536;border:1px solid #2A3B58;padding:3px 8px;border-radius:5px}
+
+  .ctab{width:100%;border-collapse:collapse;font-size:10.5px}
+  .ctab th{text-align:left;font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);
+           font-weight:800;padding:0 0 6px;border-bottom:1px solid var(--line)}
+  .ctab td{padding:7px 0;border-bottom:1px solid #131822;vertical-align:middle}
+  .ctab td.mut{color:var(--mut)}
+  .cal{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:600;
+       background:#1A2130;border:1px solid #262F40;border-radius:5px;padding:3px 8px}
+  .cal i{width:7px;height:7px;border-radius:2px;display:block}
+  .badge-none{font-size:9px;color:#F09AA0;background:rgba(240,113,120,.12);border:1px solid #3A2224;padding:2px 6px;border-radius:4px;font-weight:700}
+  .addrow{font-size:10px;color:#9EC5FF;font-weight:700;padding-top:9px;display:flex;align-items:center;gap:5px}
+  .note{background:#101620;border:1px solid #1E2836;border-radius:7px;padding:8px 10px;font-size:9.5px;
+        color:#93A5BC;line-height:1.55;margin-top:10px}
+  .note b{color:#C2D2E6}
+
+  /* generic settings rows */
+  .srow{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #131822;font-size:11px}
+  .srow .k{flex:1}
+  .srow .k b{font-weight:600;display:block}
+  .srow .k small{font-size:9px;color:var(--dim);display:block;margin-top:1px}
+  .inp{background:var(--p2);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:10.5px;
+       color:var(--tx);min-width:64px;text-align:center;font-weight:600}
+  .sw{width:32px;height:18px;border-radius:9px;background:#2A3446;position:relative;flex-shrink:0}
+  .sw i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#7A8699}
+  .sw.on{background:rgba(61,214,140,.30)}.sw.on i{left:16px;background:var(--ok)}
+  .cols2{display:grid;grid-template-columns:1fr 1fr;gap:0 26px}
+</style></head>
+<body>
+
+<!-- ============ 1 PRECEDENCE ============ -->
+<div style="position:relative"><div class="frame"><div class="screen">
+  <div class="rail">
+    <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+    <div class="nav">
+      <div class="grp">Plan</div><a><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+      <a><span class="ic">☰</span>Tasks</a><a><span class="ic">◎</span>Habits</a>
+      <div class="grp" style="margin-top:10px">Anchor</div><a><span class="ic">☾</span>Prayers</a>
+      <a><span class="ic">◔</span>Insights</a><a class="on"><span class="ic">⚙</span>Settings</a>
+    </div>
+    <div class="rank"><div class="t">Precedence <a>edit</a></div>
+      <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+      <div><i></i>Pinned</div><div><i></i>Habits</div><div><i></i>Tasks</div></div>
+  </div>
+
+  <div class="wrap">
+    <div class="top"><div><h1>Settings</h1><div class="s">Everything the engine uses is configured here — no code changes, ever</div></div>
+      <div class="saved">✓ All changes saved live</div></div>
+
+    <div class="body2">
+      <div class="snav">
+        <div class="sep">Connections</div>
+        <a><span class="ic">☁</span>Google account</a>
+        <a class="on"><span class="ic">⇅</span>Precedence</a>
+        <div class="sep">Engine</div>
+        <a><span class="ic">▦</span>Calendars</a>
+        <a><span class="ic">◔</span>Working hours</a>
+        <a><span class="ic">◈</span>Block rules</a>
+        <a><span class="ic">◎</span>Habit defaults</a>
+        <div class="sep">System</div>
+        <a><span class="ic">🔔</span>Notifications</a>
+        <a><span class="ic">⛁</span>Backup &amp; restore</a>
+        <a><span class="ic">👤</span>Account &amp; security</a>
+      </div>
+
+      <div class="pane">
+        <div class="sec">Priority order <span>drag to reorder · higher wins</span></div>
+
+        <div class="prow"><span class="hd">⋮⋮</span><span class="n">1</span><span class="t">Meetings</span>
+          <span class="d">Imported from Google Calendar. Never moved by the engine.</span>
+          <span class="tg">read-only</span></div>
+
+        <div class="prow"><span class="hd">⋮⋮</span><span class="n">2</span><span class="t">Prayers</span>
+          <span class="d">Shifted inside their window, else deferred to Qada after Isha.</span>
+          <span class="tg">protected</span></div>
+
+        <div class="prow"><span class="hd">⋮⋮</span><span class="n">3</span><span class="t">Office hours</span>
+          <span class="d">High-effort work may not enter. Medium and Low may use the gaps.</span></div>
+
+        <div class="prow"><span class="hd">⋮⋮</span><span class="n">4</span><span class="t">Pinned blocks</span>
+          <span class="d">Anything you moved by hand. The engine will not touch these.</span></div>
+
+        <div class="prow"><span class="hd">⋮⋮</span><span class="n">5</span><span class="t">Habits</span>
+          <span class="d">Compressed toward their minimum, never below. Never displaced.</span></div>
+
+        <div class="prow"><span class="hd">⋮⋮</span><span class="n">6</span><span class="t">Tasks</span>
+          <span class="d">Placed by deadline pressure, inside whatever remains.</span></div>
+
+        <div class="prow locked"><span class="hd">⋮⋮</span><span class="n">7</span><span class="t">Backlog</span>
+          <span class="d">Never scheduled. No estimate or no deadline.</span><span class="tg">inert</span></div>
+
+        <div class="warn-inline"><b>Moving Prayers below Habits</b> would let a habit hold a prayer's slot and force a Qada. The engine allows it — this warning appears whenever your order causes a prayer to yield.</div>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <div style="padding:6px 12px;border-radius:6px;background:var(--p2);border:1px solid var(--line);font-size:10px;font-weight:700;color:var(--mut)">Reset to defaults</div>
+          <div style="padding:6px 12px;border-radius:6px;background:#1B2536;border:1px solid #2A3B58;font-size:10px;font-weight:700;color:#9EC5FF">Preview effect on this week</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><div class="label">Settings · Precedence — reorderable, warns when a prayer yields</div></div></div>
+
+<!-- ============ 2 CALENDARS ============ -->
+<div style="position:relative"><div class="frame"><div class="screen">
+  <div class="rail">
+    <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+    <div class="nav">
+      <div class="grp">Plan</div><a><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+      <a><span class="ic">☰</span>Tasks</a><a><span class="ic">◎</span>Habits</a>
+      <div class="grp" style="margin-top:10px">Anchor</div><a><span class="ic">☾</span>Prayers</a>
+      <a><span class="ic">◔</span>Insights</a><a class="on"><span class="ic">⚙</span>Settings</a>
+    </div>
+    <div class="rank"><div class="t">Precedence <a>edit</a></div>
+      <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+      <div><i></i>Pinned</div><div><i></i>Habits</div><div><i></i>Tasks</div></div>
+  </div>
+
+  <div class="wrap">
+    <div class="top"><div><h1>Calendars</h1><div class="s">Google account connection and where each kind of block is written</div></div>
+      <div class="saved">✓ Synced 2m ago</div></div>
+
+    <div class="body2">
+      <div class="snav">
+        <div class="sep">Connections</div>
+        <a class="on"><span class="ic">☁</span>Google account</a>
+        <a><span class="ic">⇅</span>Precedence</a>
+        <div class="sep">Engine</div>
+        <a class="on"><span class="ic">▦</span>Calendars</a>
+        <a><span class="ic">◔</span>Working hours</a>
+        <a><span class="ic">◈</span>Block rules</a>
+        <a><span class="ic">◎</span>Habit defaults</a>
+        <div class="sep">System</div>
+        <a><span class="ic">🔔</span>Notifications</a>
+        <a><span class="ic">⛁</span>Backup &amp; restore</a>
+        <a><span class="ic">👤</span>Account &amp; security</a>
+      </div>
+
+      <div class="pane">
+        <div class="acct">
+          <div class="av">S</div>
+          <div><div class="n">you@example.com</div>
+            <div class="d">Calendar read/write · 9 calendars found</div></div>
+          <span class="st">CONNECTED</span><span class="btn" style="margin-left:8px">Re-authorize</span>
+        </div>
+
+        <div class="sec">Default calendar per subject <span>inferred at capture · overridable on every task</span></div>
+        <table class="ctab">
+          <tr><th style="width:38%">Subject / block type</th><th style="width:36%">Defaults to</th><th>Colour</th></tr>
+          <tr><td>Prayer · Fajr / Dhuhr / Asr / Maghrib / Isha</td>
+            <td><span class="cal"><i style="background:var(--prayer)"></i>Prayers</span></td><td class="mut">gold</td></tr>
+          <tr><td>Prayer · Qada (deferred)</td>
+            <td><span class="cal"><i style="background:var(--prayer)"></i>Prayers</span></td><td class="mut">gold · dashed</td></tr>
+          <tr><td>Habit · Gym, Freshup, Skincare</td>
+            <td><span class="cal"><i style="background:var(--habit)"></i>Tasks &amp; Todos</span></td><td class="mut">teal</td></tr>
+          <tr><td>Task · subject = <b>cybersec</b></td>
+            <td><span class="cal"><i style="background:var(--learn)"></i>Learnings</span></td><td class="mut">blue</td></tr>
+          <tr><td>Task · subject = <b>sys design</b></td>
+            <td><span class="cal"><i style="background:var(--learn)"></i>Learnings</span></td><td class="mut">blue</td></tr>
+          <tr><td>Task · subject = <b>Arabic</b></td>
+            <td><span class="cal"><i style="background:var(--arab)"></i>Arabic</span></td><td class="mut">violet</td></tr>
+          <tr><td>Task · subject = <b>personal</b></td>
+            <td><span class="cal"><i style="background:var(--fam)"></i>Family</span></td><td class="mut">green</td></tr>
+          <tr><td>Task · subject = <b>fun</b></td>
+            <td><span class="cal"><i style="background:var(--fun)"></i>Fun / Entertainment / Trips</span></td><td class="mut">pink</td></tr>
+          <tr><td>Task · subject = <b>admin</b></td>
+            <td><span class="badge-none">no calendar — unrouted</span></td><td class="mut">needs a rule</td></tr>
+        </table>
+
+        <div class="addrow">＋ Add a subject default</div>
+
+        <div class="note"><b>These are defaults, not gates.</b> Capture infers a calendar from the subject, and you or an agent can change it on any task — it is a field in review like Est and Priority. A task with no calendar is <b>flagged</b> and stays in inbox; it is never dropped into a wrong calendar.</div>
+      </div>
+    </div>
+  </div>
+</div><div class="label">Settings · Calendars — account connection + per-subject routing</div></div></div>
+
+<!-- ============ 3 BLOCK RULES ============ -->
+<div style="position:relative"><div class="frame"><div class="screen">
+  <div class="rail">
+    <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+    <div class="nav">
+      <div class="grp">Plan</div><a><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+      <a><span class="ic">☰</span>Tasks</a><a><span class="ic">◎</span>Habits</a>
+      <div class="grp" style="margin-top:10px">Anchor</div><a><span class="ic">☾</span>Prayers</a>
+      <a><span class="ic">◔</span>Insights</a><a class="on"><span class="ic">⚙</span>Settings</a>
+    </div>
+    <div class="rank"><div class="t">Precedence <a>edit</a></div>
+      <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+      <div><i></i>Pinned</div><div><i></i>Habits</div><div><i></i>Tasks</div></div>
+  </div>
+
+  <div class="wrap">
+    <div class="top"><div><h1>Block rules</h1><div class="s">The numbers the engine uses when it places anything</div></div>
+      <div class="saved">✓ Saved live</div></div>
+
+    <div class="body2">
+      <div class="snav">
+        <div class="sep">Connections</div>
+        <a><span class="ic">☁</span>Google account</a>
+        <a><span class="ic">⇅</span>Precedence</a>
+        <div class="sep">Engine</div>
+        <a><span class="ic">▦</span>Calendars</a>
+        <a><span class="ic">◔</span>Working hours</a>
+        <a class="on"><span class="ic">◈</span>Block rules</a>
+        <a><span class="ic">◎</span>Habit defaults</a>
+        <div class="sep">System</div>
+        <a><span class="ic">🔔</span>Notifications</a>
+        <a><span class="ic">⛁</span>Backup &amp; restore</a>
+        <a><span class="ic">👤</span>Account &amp; security</a>
+      </div>
+
+      <div class="pane">
+        <div class="cols2">
+          <div>
+            <div class="sec">Placement</div>
+            <div class="srow"><div class="k"><b>Minimum chunk</b><small>no block shorter than this</small></div><span class="inp">30m</span></div>
+            <div class="srow"><div class="k"><b>Planning window</b><small>how far ahead to fill</small></div><span class="inp">14 d</span></div>
+            <div class="srow"><div class="k"><b>Buffer after High</b></div><span class="inp">15m</span></div>
+            <div class="srow"><div class="k"><b>Buffer after Medium</b></div><span class="inp">10m</span></div>
+            <div class="srow"><div class="k"><b>Buffer after Low</b></div><span class="inp">0m</span></div>
+            <div class="srow"><div class="k"><b>Earliest block</b><small>nothing scheduled before</small></div><span class="inp">05:00</span></div>
+            <div class="srow" style="border:0"><div class="k"><b>Latest block end</b></div><span class="inp">23:00</span></div>
+          </div>
+
+          <div>
+            <div class="sec">Behaviour</div>
+            <div class="srow"><div class="k"><b>Auto-apply safe moves</b><small>same-day moves and habit shrinks</small></div><span class="sw on"><i></i></span></div>
+            <div class="srow"><div class="k"><b>Ask before cross-day moves</b></div><span class="sw on"><i></i></span></div>
+            <div class="srow"><div class="k"><b>Prayer edge guard</b><small>minutes protected at window edges</small></div><span class="inp">10m</span></div>
+            <div class="srow"><div class="k"><b>Max qada per day</b><small>stacked after Isha only</small></div><span class="inp">5</span></div>
+            <div class="srow"><div class="k"><b>Streak break after</b><small>consecutive skipped occurrences</small></div><span class="inp">3</span></div>
+            <div class="srow" style="border:0"><div class="k"><b>Shrink</b><small>never below a habit's minimum</small></div><span class="inp">minimal</span></div>
+            <div class="sec" style="margin-top:10px">Habit defaults</div>
+            <div class="srow" style="border:0"><div class="k"><b>New habit min duration</b><small>floor if not set</small></div><span class="inp">30m</span></div>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:12px"><b>These are the only numbers the engine has.</b> Nothing above is compiled in — change 30m to 45m here and every future block respects it. A <b>Reset to defaults</b> link sits at the bottom of each section.</div>
+
+        <div class="sec" style="margin-top:14px">Danger zone</div>
+        <div class="srow" style="border:0"><div class="k"><b>Recompute the whole calendar</b>
+          <small>discards all pins and re-plans from scratch — asks for confirmation</small></div>
+          <span class="inp" style="color:#F09AA0;border-color:#3A2224;background:#1A1113">Recompute</span></div>
+      </div>
+    </div>
+  </div>
+</div><div class="label">Settings · Block rules — every engine constant is editable</div></div></div>
+
+</body></html>

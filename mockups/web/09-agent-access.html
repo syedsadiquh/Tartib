@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Agent access</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0A0C11;--panel:#11141C;--p2:#151925;--line:#1D2230;--tx:#E7EBF3;--mut:#7A8699;--dim:#4A5468;
+        --prayer:#E4B363;--habit:#45C8B8;--high:#A78BFA;--med:#5B9BF8;--low:#6B7A90;--ok:#3DD68C;--warn:#E9A23B;--del:#F07178;
+        --fun:#F472B6;--fam:#7DD3A0;--learn:#60A5FA;--ai:#7DD3FC}
+  body{background:#05070A;font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;color:var(--tx);
+       -webkit-font-smoothing:antialiased;display:flex;gap:26px;padding:26px}
+  .frame{width:1040px;height:648px;overflow:hidden;border-radius:12px;border:1px solid #232A38;background:var(--bg);position:relative}
+  .screen{width:1440px;height:900px;transform:scale(.7222);transform-origin:top left;background:var(--bg);display:flex}
+  .label{position:absolute;bottom:-22px;left:2px;font-size:11px;color:#5A6577;letter-spacing:.6px;text-transform:uppercase;font-weight:700}
+  .rail{width:206px;border-right:1px solid var(--line);padding:16px 11px;display:flex;flex-direction:column;gap:16px;background:var(--panel);flex-shrink:0}
+  .brand{display:flex;align-items:center;gap:9px;padding:0 6px}
+  .mark{width:25px;height:25px;border-radius:7px;background:linear-gradient(145deg,#E4B363,#B9833A);display:grid;place-items:center;font-size:12px;color:#1a1206;font-weight:800}
+  .brand b{font-size:13.5px;font-weight:650}
+  .nav{display:flex;flex-direction:column;gap:1px}
+  .nav a{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;color:var(--mut);font-size:12px;font-weight:500;text-decoration:none}
+  .nav a.on{background:var(--p2);color:var(--tx)}
+  .nav a .ic{width:14px;text-align:center;font-size:11.5px}
+  .nav a .bd{margin-left:auto;font-size:9.5px;background:#2A3242;color:#9FAEC4;padding:1px 5px;border-radius:4px;font-weight:700}
+  .grp{font-size:9px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);padding:0 9px 4px;font-weight:800}
+  .rank{margin-top:auto;border-top:1px solid var(--line);padding-top:10px}
+  .rank .t{font-size:8.5px;letter-spacing:.9px;text-transform:uppercase;color:var(--dim);font-weight:800;margin-bottom:6px}
+  .rank div{font-size:10px;color:#6B7688;padding:2.5px 0;display:flex;gap:6px;align-items:center}
+  .rank div i{width:4px;height:4px;border-radius:50%;background:#2E3849;flex-shrink:0}
+  .rank div.f{color:var(--tx)}.rank div.f i{background:var(--prayer)}
+  .wrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .top{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line)}
+  .top h1{font-size:15px;font-weight:650;letter-spacing:-.3px}
+  .top .s{font-size:10.5px;color:var(--mut);margin-top:1px}
+  .saved{margin-left:auto;font-size:10px;color:var(--ok);background:rgba(61,214,140,.10);border:1px solid #17331F;padding:4px 9px;border-radius:6px;font-weight:700}
+  .body2{flex:1;display:grid;grid-template-columns:184px 1fr;overflow:hidden}
+  .snav{padding:12px 9px;border-right:1px solid var(--line);background:var(--panel)}
+  .snav a{display:flex;align-items:center;gap:8px;padding:6px 9px;border-radius:6px;font-size:11.5px;color:var(--mut);text-decoration:none;margin-bottom:1px}
+  .snav a.on{background:var(--p2);color:var(--tx);font-weight:600}
+  .snav .ic{font-size:11px;width:13px;text-align:center}
+  .snav .sep{font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);font-weight:800;padding:10px 9px 5px}
+  .pane{padding:13px 17px;overflow:hidden}
+  .sec{font-size:8.5px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);font-weight:800;margin-bottom:8px;display:flex;justify-content:space-between}
+  .sec span{text-transform:none;letter-spacing:0;font-weight:600;color:#5E6B80;font-size:9.5px}
+
+  .tok{background:var(--p2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;display:flex;align-items:center;gap:11px}
+  .tok .ic{width:30px;height:30px;border-radius:8px;background:rgba(125,211,252,.10);border:1px solid rgba(125,211,252,.26);
+           display:grid;place-items:center;color:var(--ai);font-size:13px;flex-shrink:0}
+  .tok .n{font-size:11.5px;font-weight:650}
+  .tok .d{font-size:9.5px;color:var(--mut);margin-top:1px}
+  .tok .st{margin-left:auto;font-size:9px;font-weight:800;color:#6FE3AB;background:rgba(61,214,140,.12);border:1px solid #17331F;padding:3px 8px;border-radius:5px}
+  .tok .rv{font-size:9px;font-weight:700;color:#F09AA0;background:rgba(240,113,120,.10);border:1px solid #3A2224;padding:3px 8px;border-radius:5px;margin-left:7px}
+
+  .perm{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #131822;font-size:11px}
+  .perm .k{flex:1}
+  .perm .k b{font-weight:600;display:block}
+  .perm .k small{font-size:9px;color:var(--dim);display:block;margin-top:1px}
+  .sw{width:32px;height:18px;border-radius:9px;background:#2A3446;position:relative;flex-shrink:0}
+  .sw i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#7A8699}
+  .sw.on{background:rgba(61,214,140,.30)}.sw.on i{left:16px;background:var(--ok)}
+  .sw.off i{left:2px}
+  .inp{background:var(--p2);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font-size:10.5px;color:var(--tx);font-weight:600;text-align:center;min-width:60px}
+
+  .note{background:#101620;border:1px solid #1E2836;border-radius:7px;padding:8px 10px;font-size:9.5px;color:#93A5BC;line-height:1.55;margin-top:9px}
+  .note b{color:#C2D2E6}
+  .ai-note{background:#0D1720;border:1px solid #1B3444;border-radius:7px;padding:8px 10px;font-size:9.5px;color:#9DC3D8;line-height:1.55;margin-top:9px}
+  .ai-note b{color:#BFE1F2}
+
+  /* activity */
+  .act{display:grid;grid-template-columns:64px 1fr 108px;gap:9px;padding:6px 0;border-bottom:1px solid #131822;font-size:10.5px;align-items:center}
+  .act .tm{font-size:9px;color:var(--dim);font-variant-numeric:tabular-nums}
+  .act .d b{color:var(--tx);font-weight:600}
+  .act .d{color:var(--mut);line-height:1.4}
+  .act .r{text-align:right}
+  .auto{font-size:8px;font-weight:800;letter-spacing:.4px;color:#7DD3FC;background:rgba(125,211,252,.12);
+        border:1px solid rgba(125,211,252,.26);padding:1.5px 5px;border-radius:4px}
+  .held{font-size:8px;font-weight:800;letter-spacing:.4px;color:#EFBB6E;background:rgba(233,162,59,.12);
+        border:1px solid #3A2C14;padding:1.5px 5px;border-radius:4px}
+
+  /* task list screen */
+  main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .filters{display:flex;gap:5px;padding:9px 17px;border-bottom:1px solid var(--line);align-items:center}
+  .f{padding:4px 10px;border-radius:5px;font-size:10.5px;color:var(--mut);font-weight:600;border:1px solid transparent}
+  .f.on{background:var(--p2);color:var(--tx);border-color:var(--line)}
+  .f .ai{color:var(--ai)}
+  .thead,.trow{display:grid;grid-template-columns:20px 1fr 92px 58px 70px 130px 96px;gap:8px;padding:9px 17px;align-items:center}
+  .thead{font-size:8px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);font-weight:800;border-bottom:1px solid var(--line);background:#0D1017}
+  .trow{border-bottom:1px solid #131822;font-size:11px}
+  .cb{width:13px;height:13px;border-radius:3.5px;border:1.5px solid #37425A}
+  .nm{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:5px}
+  .sub{font-size:9px;color:var(--dim);margin-top:1px}
+  .mut{color:var(--mut);font-size:10.5px}
+  .p{font-size:8.5px;padding:2px 6px;border-radius:4px;font-weight:800}
+  .p.hi{background:rgba(167,139,250,.16);color:#BFA9FD}.p.me{background:rgba(91,155,248,.16);color:#8FBDF9}
+  .p.lo{background:rgba(107,122,144,.18);color:#9AA9BE}
+  .cal{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:650;background:#1A2130;border:1px solid #2A3346;border-radius:5px;padding:3px 7px}
+  .cal i{width:6px;height:6px;border-radius:2px;display:block}
+  .aib{font-size:8px;font-weight:800;letter-spacing:.3px;color:#7DD3FC;background:rgba(125,211,252,.12);
+       border:1px solid rgba(125,211,252,.28);border-radius:3px;padding:1px 4px;flex-shrink:0}
+  .prov{padding:11px 17px;border-top:1px solid var(--line);background:#0E1219;display:flex;gap:14px;align-items:flex-start}
+  .prov .who{display:flex;align-items:center;gap:7px;font-size:10.5px;font-weight:650;color:#BFE1F2}
+  .prov .ic{width:22px;height:22px;border-radius:6px;background:rgba(125,211,252,.12);border:1px solid rgba(125,211,252,.26);
+            display:grid;place-items:center;font-size:11px;color:var(--ai)}
+  .prov .ln{font-size:9.5px;color:var(--mut);line-height:1.55;margin-top:3px}
+  .prov .ln b{color:#C2D2E6}
+  .prov .lg{margin-left:auto;font-size:9px;color:var(--dim);text-align:right;line-height:1.6}
+  .prov .lg b{color:#7DD3FC;font-weight:700}
+</style></head>
+<body>
+
+<!-- ============ 1 AGENT ACCESS ============ -->
+<div style="position:relative"><div class="frame"><div class="screen">
+  <div class="rail">
+    <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+    <div class="nav">
+      <div class="grp">Plan</div><a><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+      <a><span class="ic">☰</span>Tasks</a><a><span class="ic">◎</span>Habits</a>
+      <div class="grp" style="margin-top:10px">Anchor</div><a><span class="ic">☾</span>Prayers</a>
+      <a><span class="ic">◔</span>Insights</a><a class="on"><span class="ic">⚙</span>Settings</a>
+    </div>
+    <div class="rank"><div class="t">Precedence</div>
+      <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+      <div><i></i>Pinned</div><div><i></i>Habits</div><div><i></i>Tasks</div></div>
+  </div>
+
+  <div class="wrap">
+    <div class="top"><div><h1>Agent access</h1><div class="s">What agents may do without asking — and what it must never do</div></div>
+      <div class="saved">✓ Saved live</div></div>
+
+    <div class="body2">
+      <div class="snav">
+        <div class="sep">Connections</div>
+        <a><span class="ic">☁</span>Google account</a>
+        <a><span class="ic">⇅</span>Precedence</a>
+        <div class="sep">Engine</div>
+        <a><span class="ic">▦</span>Calendars</a>
+        <a><span class="ic">◔</span>Working hours</a>
+        <a><span class="ic">◈</span>Block rules</a>
+        <div class="sep">System</div>
+        <a><span class="ic">🔔</span>Notifications</a>
+        <a><span class="ic">⛁</span>Backup</a>
+        <a class="on"><span class="ic">🤖</span>Agent access</a>
+        <a><span class="ic">👤</span>Account</a>
+      </div>
+
+      <div class="pane">
+        <div class="tok">
+          <div class="ic">🤖</div>
+          <div><div class="n">assistant-bot</div>
+            <div class="d">Token hs_live_…9f2c · created 12 Nov · last used 2 minutes ago</div></div>
+          <span class="st">ACTIVE</span><span class="rv">Revoke</span>
+        </div>
+
+        <div class="sec" style="margin-top:11px">Permissions <span>auto-approve is per-permission, not global</span></div>
+
+        <div class="perm"><div class="k"><b>Read schedule &amp; tasks</b><small>today, week, tasks, habits, plan diff</small></div><span class="sw on"><i></i></span></div>
+        <div class="perm"><div class="k"><b>Create tasks</b><small>single or bulk — auto-approved, marked <span style="color:#7DD3FC">AI</span></small></div><span class="sw on"><i></i></span></div>
+        <div class="perm"><div class="k"><b>Edit task fields</b><small>estimate, priority, deadline, subtasks, calendar</small></div><span class="sw on"><i></i></span></div>
+        <div class="perm"><div class="k"><b>Move / reschedule blocks</b><small>marks the block pinned, as if you dragged it</small></div><span class="sw on"><i></i></span></div>
+        <div class="perm"><div class="k"><b>Apply the plan to Google Calendar</b><small>off — agent may propose, only you may apply</small></div><span class="sw off"><i></i></span></div>
+        <div class="perm" style="border:0"><div class="k"><b>Delete tasks · edit habits · change settings</b><small>never available to any token</small></div><span class="sw off" style="opacity:.4"><i></i></span></div>
+
+        <div style="display:flex;gap:14px;margin-top:9px;align-items:center">
+          <div style="font-size:10.5px;color:var(--mut)">Rate limit</div><span class="inp">200 / hr</span>
+          <div style="font-size:10.5px;color:var(--mut)">Daily cap</div><span class="inp">500</span>
+          <div style="font-size:10.5px;color:var(--mut)">Bulk batch max</div><span class="inp">100</span>
+        </div>
+
+        <div class="ai-note"><b>Every agent action is attributed.</b> Anything a token changes carries an <b style="color:#7DD3FC">AI</b> marker in the task list, the task's history and the engine log — including its token name and timestamp. Auto-approved actions are marked <b style="color:#7DD3FC">AUTO</b> so they are distinguishable from changes you made yourself.</div>
+
+        <div class="sec" style="margin-top:11px">Recent agent activity <span>last 5</span></div>
+        <div class="act"><div class="tm">10:41</div><div class="d">Created <b>18 tasks</b> — cybersec week 2 syllabus</div><div class="r"><span class="auto">AUTO</span></div></div>
+        <div class="act"><div class="tm">10:12</div><div class="d">Moved <b>DB2 — Sharding</b> to Mon 20:00</div><div class="r"><span class="auto">AUTO</span></div></div>
+        <div class="act"><div class="tm">09:47</div><div class="d">Set calendar for <b>4 tasks</b> → Learnings</div><div class="r"><span class="auto">AUTO</span></div></div>
+        <div class="act"><div class="tm">09:20</div><div class="d">Proposed plan with 6 changes — not applied</div><div class="r"><span class="held">HELD</span></div></div>
+        <div class="act" style="border:0"><div class="tm">08:03</div><div class="d">Created <b>Arabic — Lesson 14</b></div><div class="r"><span class="auto">AUTO</span></div></div>
+      </div>
+    </div>
+  </div>
+</div><div class="label">Settings · Agent access — scoped permissions, attribution, activity</div></div></div>
+
+<!-- ============ 2 TASKS WITH AI MARKERS ============ -->
+<div style="position:relative"><div class="frame"><div class="screen">
+  <div class="rail">
+    <div class="brand"><div class="mark">◈</div><b>Scheduler</b></div>
+    <div class="nav">
+      <div class="grp">Plan</div><a><span class="ic">◐</span>Today</a><a><span class="ic">◫</span>Week</a>
+      <a class="on"><span class="ic">☰</span>Tasks<span class="bd">22</span></a><a><span class="ic">◎</span>Habits</a>
+      <div class="grp" style="margin-top:10px">Anchor</div><a><span class="ic">☾</span>Prayers</a>
+      <a><span class="ic">◔</span>Insights</a><a><span class="ic">⚙</span>Settings</a>
+    </div>
+    <div class="rank"><div class="t">Precedence</div>
+      <div class="f"><i></i>Meetings</div><div class="f"><i></i>Prayers</div><div><i></i>Office hours</div>
+      <div><i></i>Pinned</div><div><i></i>Habits</div><div class="f"><i></i>Tasks</div></div>
+  </div>
+
+  <main>
+    <div class="top"><div><h1>Tasks</h1><div class="s">22 tasks · 18 created by agents · 4 with auto-approved changes</div></div>
+      <div class="saved" style="color:#7DD3FC;background:rgba(125,211,252,.10);border-color:#1B3444">🤖 18 by agent</div></div>
+
+    <div class="filters">
+      <div class="f on">All 22</div><div class="f">Inbox 4</div><div class="f">Scheduled 14</div>
+      <div class="f">Created by me</div><div class="f"><span class="ai">◈</span> By agent 18</div>
+      <div class="f">Auto-approved 4</div>
+    </div>
+
+    <div class="thead"><div></div><div>Task</div><div>Subject</div><div>Est</div><div>Priority</div><div>Calendar</div><div>Last change</div></div>
+
+    <div class="trow"><div class="cb"></div>
+      <div><div class="nm">W2D1 — Auth bypass <span class="aib">AI</span></div><div class="sub">4 units × 30m</div></div>
+      <div class="mut">cybersec</div><div class="mut">2h</div><div><span class="p hi">HIGH</span></div>
+      <div><span class="cal"><i style="background:var(--learn)"></i>Learnings</span></div>
+      <div class="mut" style="color:#7DD3FC">◈ created 10:41</div></div>
+
+    <div class="trow"><div class="cb"></div>
+      <div><div class="nm">W2D2 — Session flaws <span class="aib">AI</span></div><div class="sub">depends on W2D1</div></div>
+      <div class="mut">cybersec</div><div class="mut">2h</div><div><span class="p hi">HIGH</span></div>
+      <div><span class="cal"><i style="background:var(--learn)"></i>Learnings</span></div>
+      <div class="mut" style="color:#7DD3FC">◈ created 10:41</div></div>
+
+    <div class="trow"><div class="cb"></div>
+      <div><div class="nm">DB2 — Sharding</div><div class="sub">3 units · moved by agent</div></div>
+      <div class="mut">sys design</div><div class="mut">1h 30m</div><div><span class="p hi">HIGH</span></div>
+      <div><span class="cal"><i style="background:var(--learn)"></i>Learnings</span></div>
+      <div class="mut" style="color:#7DD3FC">◈ moved 10:12</div></div>
+
+    <div class="trow"><div class="cb"></div>
+      <div><div class="nm">Call home</div><div class="sub">weekly · created by you</div></div>
+      <div class="mut">personal</div><div class="mut">30m</div><div><span class="p lo">LOW</span></div>
+      <div><span class="cal"><i style="background:var(--fam)"></i>Family</span></div>
+      <div class="mut" style="color:var(--dim)">you · 2 days ago</div></div>
+
+    <div class="trow"><div class="cb"></div>
+      <div><div class="nm">Fix notes template</div><div class="sub" style="color:var(--del)">no estimate · stays in inbox</div></div>
+      <div class="mut">admin</div><div class="mut" style="color:var(--del)">—</div><div><span class="p lo">LOW</span></div>
+      <div><span class="cal" style="color:#F09AA0;border-color:#3A2224;background:rgba(240,113,120,.10)">none</span></div>
+      <div class="mut" style="color:var(--dim)">you · 3 days ago</div></div>
+
+    <div class="prov">
+      <div><div class="who"><span class="ic">🤖</span> assistant-bot</div>
+        <div class="ln">Created this task from a chat message — <b>"add the W2 cybersecurity course, 2h each, due daily"</b> — at <b>10:41</b>. Auto-approved under <b>Create tasks</b>.</div></div>
+      <div class="lg"><b>AI</b> = created or changed by an agent<br><b>AUTO</b> = applied without asking<br><b>Held</b> = proposed, waiting on you</div>
+    </div>
+  </main>
+</div><div class="label">Tasks · AI markers + provenance on every agent change</div></div></div>
+
+</body></html>

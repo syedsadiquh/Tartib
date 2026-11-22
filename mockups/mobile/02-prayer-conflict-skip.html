@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Prayer conflict + skip</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{--bg:#0A0C11;--panel:#11141C;--p2:#151925;--line:#1D2230;--tx:#E7EBF3;--mut:#7A8699;--dim:#4A5468;
+        --prayer:#E4B363;--habit:#45C8B8;--high:#A78BFA;--med:#5B9BF8;--low:#6B7A90;--ok:#3DD68C;--warn:#E9A23B;--del:#F07178;--meet:#8C9BB5}
+  body{background:#05070A;font-family:-apple-system,BlinkMacSystemFont,"Inter",sans-serif;color:var(--tx);
+       -webkit-font-smoothing:antialiased;display:flex;gap:20px;padding:20px}
+  .phone{width:390px;height:812px;background:var(--bg);border-radius:34px;border:1px solid #232A38;
+         overflow:hidden;position:relative;flex-shrink:0;display:flex;flex-direction:column}
+  .st{height:26px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;font-size:10px;color:var(--dim)}
+  .hd{padding:0 16px 8px;display:flex;align-items:flex-end;justify-content:space-between}
+  .hd h2{font-size:20px;font-weight:660;letter-spacing:-.5px}
+  .hd .s{font-size:10.5px;color:var(--mut);margin-top:1px}
+  .pill{font-size:9.5px;color:var(--habit);background:rgba(69,200,184,.10);border:1px solid rgba(69,200,184,.24);
+        padding:3px 8px;border-radius:20px;font-weight:750}
+  .sec{font-size:8.5px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);font-weight:800;
+       padding:8px 16px 6px;display:flex;justify-content:space-between;align-items:center}
+  .sec a{color:#6E8DC0;font-size:9px;text-decoration:none;letter-spacing:0;text-transform:none;font-weight:700}
+  .tl{padding:0 12px;flex:1;overflow:hidden}
+  .sl{display:flex;gap:8px;margin-bottom:6px}
+  .sl .h{width:34px;font-size:9px;color:var(--dim);text-align:right;padding-top:7px;flex-shrink:0}
+  .bx{flex:1;border-radius:8px;padding:6px 9px;border-left:2.5px solid;font-size:11px;position:relative}
+  .bx .t{font-weight:630;font-size:11.5px}
+  .bx .m{font-size:9px;opacity:.72;margin-top:1px}
+  .bx.hi{background:rgba(167,139,250,.13);border-color:var(--high);color:#D5C8FE}
+  .bx.me{background:rgba(91,155,248,.12);border-color:var(--med);color:#C2D8FD}
+  .bx.ha{background:rgba(69,200,184,.09);border-color:var(--habit);color:#A9E8E0}
+  .bx.pr{background:rgba(228,179,99,.15);border-color:var(--prayer);color:#F5E0BA;padding:4px 9px;font-size:10px;font-weight:750}
+  .bx.mt{background:rgba(140,155,181,.10);border-color:var(--meet);color:#B7C3D6}
+  .bx.qa{background:rgba(228,179,99,.07);border:1px dashed var(--prayer);color:#E6C48D;padding:5px 9px;font-size:10px;font-weight:700}
+  .bx.now{border-color:var(--ok);box-shadow:0 0 0 1px rgba(61,214,140,.28)}
+  .mv{font-size:8px;font-weight:800;letter-spacing:.4px;background:rgba(228,179,99,.2);color:#F0CE96;
+      padding:1px 4px;border-radius:3px;margin-left:5px;vertical-align:middle}
+
+  .notice{margin:0 12px 9px;border-radius:10px;padding:8px 10px;font-size:9.5px;line-height:1.55}
+  .notice.mv{background:#171208;border:1px solid #3A2C14;color:#D9B47A}
+  .notice.qa{background:#151219;border:1px dashed #4A3A1C;color:#D9B47A}
+  .notice b{color:#F3DCB2;font-weight:650}
+
+  .nav{position:absolute;left:0;right:0;bottom:0;height:58px;background:rgba(13,16,22,.97);border-top:1px solid var(--line);
+       display:grid;grid-template-columns:repeat(5,1fr);padding-bottom:6px}
+  .nav div{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:8.5px;color:var(--dim);font-weight:650}
+  .nav div .ic{font-size:14px}
+  .nav div.on{color:var(--prayer)}
+
+  /* window visual */
+  .win{margin:0 12px 9px;background:#101620;border:1px solid #1E2836;border-radius:10px;padding:9px 10px}
+  .win .cap{font-size:8px;text-transform:uppercase;letter-spacing:.9px;color:var(--dim);font-weight:800;margin-bottom:7px}
+  .track{height:34px;background:#0B0F16;border-radius:5px;position:relative;overflow:hidden;border:1px solid #1A2230}
+  .edge{position:absolute;top:0;bottom:0;width:7%;background:repeating-linear-gradient(45deg,#1E1A10,#1E1A10 3px,#2A2415 3px,#2A2415 6px)}
+  .edge.l{left:0}.edge.r{right:0}
+  .mtg{position:absolute;top:0;height:18px;background:repeating-linear-gradient(135deg,#1B2129,#1B2129 4px,#232B36 4px,#232B36 8px);border-left:2px solid var(--meet)}
+  .blk2{position:absolute;bottom:2px;height:15px;background:rgba(228,179,99,.28);border-left:2px solid var(--prayer);border-radius:3px;
+        font-size:8px;font-weight:800;color:#F3DCB2;display:flex;align-items:center;padding-left:4px}
+  .ax{display:flex;justify-content:space-between;font-size:7.5px;color:var(--dim);margin-top:4px;font-variant-numeric:tabular-nums}
+  .lgd{display:flex;gap:10px;font-size:7.5px;color:var(--dim);margin-top:6px}
+  .lgd span{display:flex;align-items:center;gap:3px}
+  .lgd i{width:6px;height:6px;border-radius:1px;display:inline-block}
+  .qbadge{display:inline-flex;align-items:center;gap:4px;font-size:8.5px;font-weight:800;color:#E6C48D;
+          background:rgba(228,179,99,.12);border:1px dashed #4A3A1C;padding:2px 7px;border-radius:5px}
+
+  /* habit card + skip */
+  .hk{padding:0 12px;flex:1;overflow:hidden}
+  .hc{background:var(--p2);border:1px solid var(--line);border-radius:11px;padding:9px 11px;margin-bottom:6px;display:flex;align-items:center;gap:9px;position:relative}
+  .hc.due{border-color:#3A2C14}
+  .hck{width:24px;height:24px;border-radius:8px;border:1.5px solid #37425A;display:grid;place-items:center;font-size:12px;color:#0A0C11;flex-shrink:0}
+  .hc .n{font-size:12px;font-weight:630;flex:1}
+  .hc .n .sub{display:block;font-size:9px;color:var(--mut);font-weight:500;margin-top:1px}
+  .skbtn{font-size:9.5px;color:#C3CBD8;background:#222A38;border:1px solid #313A4B;border-radius:6px;padding:4px 9px;font-weight:700}
+  .lp{position:absolute;right:8px;top:-1px;font-size:7px;color:var(--dim);letter-spacing:.4px}
+
+  .dim{position:absolute;inset:0;background:rgba(3,5,8,.6)}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--panel);border-radius:22px 22px 0 0;
+         border-top:1px solid #262E3E;padding:9px 14px 18px}
+  .grab{width:36px;height:4px;border-radius:2px;background:#2C3546;margin:0 auto 12px}
+  .sheet .ttl{font-size:13px;font-weight:660;margin-bottom:2px}
+  .sheet .sub{font-size:10px;color:var(--mut);margin-bottom:11px}
+  .opt{display:flex;align-items:center;gap:9px;background:var(--p2);border:1px solid var(--line);border-radius:10px;padding:10px 11px;margin-bottom:6px}
+  .opt.pri{background:rgba(228,179,99,.10);border-color:rgba(228,179,99,.3)}
+  .opt .ic{width:26px;height:26px;border-radius:8px;background:#1E2634;display:grid;place-items:center;font-size:12px;flex-shrink:0}
+  .opt.pri .ic{background:rgba(228,179,99,.16);color:var(--prayer)}
+  .opt .n{font-size:11.5px;font-weight:620}
+  .opt .d{font-size:9px;color:var(--mut);margin-top:1px}
+  .opt .k{font-size:8px;color:var(--dim);border:1px solid #2B3444;border-radius:3px;padding:1px 4px;margin-left:auto}
+  .gain{margin-top:9px;background:#0C1710;border:1px solid #16311F;border-radius:8px;padding:7px 9px;font-size:9.5px;color:#8EDCB0;line-height:1.5}
+  .gain b{color:#B7F0CE}
+</style></head>
+<body>
+
+<!-- A : SHIFTED WITHIN WINDOW -->
+<div class="phone">
+  <div class="st"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+  <div class="hd"><div><h2>Today</h2><div class="s">Mon 24 Nov · 1 conflict resolved</div></div><div class="pill">◆ 15</div></div>
+
+  <div class="notice mv"><b>Dhuhr moved 13:00 → 13:20.</b> Cleared your 13:00–13:15 standup, staying inside the window with the 10-minute edges kept.</div>
+
+  <div class="win">
+    <div class="cap">Dhuhr window · 13:00 – 14:00</div>
+    <div class="track">
+      <div class="edge l"></div><div class="edge r"></div>
+      <div class="mtg" style="left:0;width:25%"></div>
+      <div class="blk2" style="left:33%;width:38%">13:20 · 30m</div>
+    </div>
+    <div class="ax"><span>13:00</span><span>13:15</span><span>13:30</span><span>13:45</span><span>14:00</span></div>
+    <div class="lgd">
+      <span><i style="background:#232B36;border-left:2px solid var(--meet)"></i>meeting</span>
+      <span><i style="background:rgba(228,179,99,.4)"></i>prayer</span>
+      <span><i style="background:repeating-linear-gradient(45deg,#1E1A10,#1E1A10 2px,#2A2415 2px,#2A2415 4px)"></i>10m protected edge</span>
+    </div>
+  </div>
+
+  <div class="sec">Schedule</div>
+  <div class="tl">
+    <div class="sl"><div class="h">10:00</div><div class="bx mt"><div class="t">Standup</div><div class="m">13:00 · 15m · from Google Calendar</div></div></div>
+    <div class="sl"><div class="h">13:20</div><div class="bx pr"><div class="t">☾ Dhuhr <span class="mv">MOVED +20m</span></div><div class="m">13:20 – 13:50 · 30m</div></div></div>
+    <div class="sl"><div class="h">14:00</div><div class="bx me"><div class="t">DB2: Sharding</div><div class="m">45m · Medium</div></div></div>
+    <div class="sl"><div class="h">15:35</div><div class="bx pr">☾ Asr · 15:35 – 16:00</div></div>
+    <div class="sl"><div class="h">16:10</div><div class="bx me"><div class="t">W2D1: Auth bypass</div><div class="m">1h 25m · compressed from 2h</div></div></div>
+    <div class="sl"><div class="h">18:30</div><div class="bx ha"><div class="t">Skincare PM</div><div class="m">10m · min protected</div></div></div>
+    <div class="sl"><div class="h">19:45</div><div class="bx pr">☾ Isha · 19:45 – 20:30</div></div>
+    <div class="sl"><div class="h">20:30</div><div class="bx hi"><div class="t">LR2: Back-of-envelope</div><div class="m">1h 30m · High</div></div></div>
+  </div>
+
+  <div class="nav"><div class="on"><span class="ic">◐</span>Today</div><div><span class="ic">◫</span>Week</div>
+    <div><span class="ic">☰</span>Tasks</div><div><span class="ic">◎</span>Habits</div><div><span class="ic">☾</span>Prayer</div></div>
+</div>
+
+<!-- B : QADA AFTER ISHA -->
+<div class="phone">
+  <div class="st"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+  <div class="hd"><div><h2>Today</h2><div class="s">Fri 28 Nov · <span style="color:#E6C48D">1 qada pending</span></div></div>
+    <div class="pill" style="color:#E6C48D;background:rgba(228,179,99,.10);border-color:#4A3A1C">QADA 1</div></div>
+
+  <div class="notice qa"><b>Jummah had no room in its window.</b> 12:45–13:45 was fully booked, and the 10-minute edges would have been lost. Moved to <b>Qada after Isha, 20:30</b>.</div>
+
+  <div class="win">
+    <div class="cap">Jummah window · 12:45 – 13:45 — full</div>
+    <div class="track">
+      <div class="edge l"></div><div class="edge r"></div>
+      <div class="mtg" style="left:0;width:100%;height:34px;opacity:.7"></div>
+      <div style="position:absolute;inset:0;display:grid;place-items:center;font-size:8px;font-weight:800;color:#C9D3E3;letter-spacing:.5px">BACK-TO-BACK MEETINGS</div>
+    </div>
+    <div class="ax"><span>12:45</span><span>13:00</span><span>13:15</span><span>13:30</span><span>13:45</span></div>
+  </div>
+
+  <div class="sec">Schedule</div>
+  <div class="tl">
+    <div class="sl"><div class="h">10:00</div><div class="bx mt"><div class="t">Client review</div><div class="m">12:45 – 13:45 · from Google Calendar</div></div></div>
+    <div class="sl"><div class="h">14:00</div><div class="bx hi"><div class="t">W2D4: IDOR practice</div><div class="m">1h 45m · High</div></div></div>
+    <div class="sl"><div class="h">15:35</div><div class="bx pr">☾ Asr · 15:35 – 16:00</div></div>
+    <div class="sl"><div class="h">17:05</div><div class="bx pr">☾ Maghrib · 17:05 – 17:25</div></div>
+    <div class="sl"><div class="h">19:45</div><div class="bx pr">☾ Isha · 19:45 – 20:30</div></div>
+    <div class="sl"><div class="h">20:30</div><div class="bx qa"><div class="t">Qada · Jummah</div><div class="m">20:30 – 21:30 · 60m · clear the evening</div></div></div>
+    <div class="sl"><div class="h">21:30</div><div class="bx ha"><div class="t">Skincare PM</div><div class="m">10m</div></div></div>
+  </div>
+
+  <div class="notice qa" style="margin-top:2px">Qada blocks are never filled by tasks. Tapping one moves it again, or marks it <b>prayed</b>.</div>
+
+  <div class="nav"><div class="on"><span class="ic">◐</span>Today</div><div><span class="ic">◫</span>Week</div>
+    <div><span class="ic">☰</span>Tasks</div><div><span class="ic">◎</span>Habits</div><div><span class="ic">☾</span>Prayer</div></div>
+</div>
+
+<!-- C : SKIP SHEET -->
+<div class="phone">
+  <div class="st"><span>9:41</span><span>▮▮▮ ⌁</span></div>
+  <div class="hd"><div><h2>Habits</h2><div class="s">2 of 5 done</div></div><div class="pill">◆ 14</div></div>
+
+  <div class="hk">
+    <div class="hc"><div class="hck">✓</div><div class="n">Gym<span class="sub">3h logged</span></div></div>
+    <div class="hc"><div class="hck">✓</div><div class="n">Freshup + AM skincare<span class="sub">45m</span></div></div>
+    <div class="hc due" style="border-color:#4A3A1C"><div class="hck"></div>
+      <div class="n">Skincare PM<span class="sub" style="color:var(--warn)">18:30 · compressed 3× this week</span></div>
+      <div class="skbtn">Skip</div></div>
+    <div class="hc"><div class="hck"></div><div class="n">Deep work ≥ 2h<span class="sub">1h 45m logged</span></div>
+      <div class="skbtn">Skip</div></div>
+    <div class="hc" style="opacity:.5;border-style:dashed"><div class="hck"></div><div class="n">Qur'an 15m<span class="sub">hard · never compresses</span></div></div>
+
+    <div class="sec" style="padding:12px 2px 5px">Long-press a row for the rest</div>
+    <div style="font-size:9px;color:var(--dim);line-height:1.6;padding:0 2px">
+      Tap <b style="color:#C3CBD8">Skip</b> → done for today, one tap, undo toast.<br>
+      Long-press → skip until a date, or disable.
+    </div>
+  </div>
+
+  <div class="dim"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="ttl">Skincare PM</div>
+    <div class="sub">Today, 18:30 · 10m · min 10m</div>
+
+    <div class="opt pri"><div class="ic">⤼</div>
+      <div><div class="n">Skip today only</div><div class="d">Frees 18:30 · streak pauses, not breaks</div></div>
+      <span class="k">tap</span></div>
+
+    <div class="opt"><div class="ic">⏭</div>
+      <div><div class="n">Skip until…</div><div class="d">Tomorrow · end of week · pick a date</div></div>
+      <span class="k">hold</span></div>
+
+    <div class="opt"><div class="ic">⏸</div>
+      <div><div class="n">Disable habit</div><div class="d">Removes it and all future blocks</div></div></div>
+
+    <div class="gain"><b>If you skip today:</b> 18:30–18:40 opens → <b>W2D2: Session flaws</b> (2h) can start at 18:30 instead of waiting for Thu.</div>
+  </div>
+
+  <div class="nav"><div><span class="ic">◐</span>Today</div><div><span class="ic">◫</span>Week</div>
+    <div><span class="ic">☰</span>Tasks</div><div class="on"><span class="ic">◎</span>Habits</div><div><span class="ic">☾</span>Prayer</div></div>
+</div>
+
+</body></html>

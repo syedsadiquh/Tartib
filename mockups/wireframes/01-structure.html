@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Wireframes</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#14161A;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;padding:22px;
+       display:grid;grid-template-columns:repeat(3,1fr);gap:16px;width:1420px}
+  .wf{background:#1C1F25;border:1px solid #2C3038;border-radius:8px;padding:11px;height:300px;position:relative;overflow:hidden}
+  .wf h4{font-size:9px;letter-spacing:1.1px;text-transform:uppercase;color:#8A93A3;font-weight:700;margin-bottom:9px;
+         display:flex;justify-content:space-between}
+  .wf h4 span{color:#5B6473;letter-spacing:.4px;text-transform:none;font-weight:400}
+  .b{border:1px dashed #3E444F;border-radius:4px;display:flex;align-items:center;justify-content:center;
+     font-size:8.5px;color:#98A1B0;padding:3px 5px;text-align:center;line-height:1.35}
+  .b.s{background:#232730;border-style:solid;border-color:#333843;color:#B6BECB;font-weight:600}
+  .b.a{border-color:#6B5B2E;background:#26211A;color:#C7B183}
+  .b.g{border-color:#2E4A38;background:#1A231E;color:#8FB49E}
+  .row{display:flex;gap:5px;margin-bottom:5px}
+  .col{display:flex;flex-direction:column;gap:5px}
+  .lbl{font-size:7.5px;color:#5B6473;letter-spacing:.6px;text-transform:uppercase;margin:6px 0 4px}
+  .ln{height:1px;background:#333843;margin:7px 0}
+  .arw{font-size:9px;color:#5B6473;text-align:center}
+
+  /* map */
+  .map{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+  /* flow */
+  .fl{display:flex;align-items:center;gap:3px;font-size:8px;color:#98A1B0;margin-bottom:4px}
+  .fl .b{flex:1;padding:2px 3px;font-size:7.5px}
+  .fl .x{color:#5B6473;font-size:8px}
+  /* settings rows */
+  .sr{display:flex;justify-content:space-between;font-size:8.5px;color:#98A1B0;padding:3.5px 0;border-bottom:1px solid #262A32}
+  .sr b{color:#B6BECB;font-weight:600}
+  .sr i{color:#5B6473;font-style:normal;font-size:8px}
+  /* phone-ish */
+  .mob{width:104px;height:210px;border:1px solid #3E444F;border-radius:9px;padding:4px;display:flex;flex-direction:column;gap:3px}
+  .mob .top{height:9px;background:#232730;border-radius:2px}
+  .mob .bx{flex:1;border:1px dashed #3E444F;border-radius:2px}
+  .mob .nb{height:11px;background:#232730;border-radius:2px}
+</style></head>
+<body>
+
+<!-- 1 IA -->
+<div class="wf"><h4>01 · Information architecture <span>web ↔ mobile</span></h4>
+  <div class="map">
+    <div class="b s">Today<br><span style="font-size:7px;color:#7A8393">default</span></div>
+    <div class="b s">Week</div>
+    <div class="b s">Tasks</div>
+    <div class="b s">Habits</div>
+    <div class="b">Prayers</div>
+    <div class="b">Insights</div>
+    <div class="b">Settings</div>
+    <div class="b g">Re-plan<br>review</div>
+  </div>
+  <div class="lbl">Depth</div>
+  <div class="fl"><div class="b">Tasks list</div><span class="x">→</span><div class="b">Task detail</div><span class="x">→</span><div class="b">Placement history</div></div>
+  <div class="fl"><div class="b">Habits grid</div><span class="x">→</span><div class="b">Habit editor</div></div>
+  <div class="fl"><div class="b">Week</div><span class="x">→</span><div class="b">Drag / pin block</div><span class="x">→</span><div class="b">Diff preview</div></div>
+  <div class="lbl">Always reachable</div>
+  <div class="row"><div class="b s" style="flex:1">＋ Capture (NL)</div><div class="b s" style="flex:1">⇄ Re-plan badge</div><div class="b s" style="flex:1">☾ Next prayer</div></div>
+  <div class="lbl">Not a page</div>
+  <div class="b" style="height:26px">Nothing writes to Google Calendar without an accept — review is a sheet, not a destination</div>
+</div>
+
+<!-- 2 TASK LIFECYCLE -->
+<div class="wf"><h4>02 · Task lifecycle <span>states + gates</span></h4>
+  <div class="fl"><div class="b">capture</div><span class="x">→</span><div class="b a">inbox</div><span class="x">→</span><div class="b">has Est?</div></div>
+  <div class="fl"><div class="b g">scheduled</div><span class="x">→</span><div class="b">in progress</div><span class="x">→</span><div class="b">partial</div><span class="x">→</span><div class="b g">done</div></div>
+  <div class="fl"><div class="b">skipped</div><span class="x">↺</span><div class="b">rolls to next slot</div></div>
+  <div class="lbl">Gates — why it can't be scheduled</div>
+  <div class="sr"><span>no estimate OR no priority</span><b>blocked</b></div>
+  <div class="sr"><span>dependency not done</span><b>blocked</b></div>
+  <div class="sr"><span>no free slot after Isha</span><b>flagged</b></div>
+  <div class="sr"><span>habit minimum in the way</span><b>waits</b></div>
+  <div class="sr"><span>user pinned elsewhere</span><b>pinned</b></div>
+  <div class="lbl">Partial math</div>
+  <div class="b" style="height:24px">logged 45m of 90m → 45m returned to the pool, re-chunked to ≥30m</div>
+</div>
+
+<!-- 3 REPLAN FLOW -->
+<div class="wf"><h4>03 · Re-plan flow <span>the trust loop</span></h4>
+  <div class="fl"><div class="b">trigger<br>hourly / change</div><span class="x">→</span><div class="b">engine run<br>(dry)</div><span class="x">→</span><div class="b g">diff</div></div>
+  <div class="fl"><div class="b">classify safe<br>vs flagged</div><span class="x">→</span><div class="b a">notify</div><span class="x">→</span><div class="b">user accepts?</div></div>
+  <div class="fl"><div class="b g">write to GCal</div><span class="x">→</span><div class="b">log history</div></div>
+  <div class="lbl">What counts as safe (auto-apply allowed)</div>
+  <div class="sr"><span>move a block inside the same day</span><b>safe</b></div>
+  <div class="sr"><span>shrink a habit to its minimum</span><b>safe</b></div>
+  <div class="sr"><span>move across days</span><b>ask</b></div>
+  <div class="sr"><span>drop or skip anything</span><b>ask</b></div>
+  <div class="sr"><span>touch a pinned block</span><b>never</b></div>
+  <div class="lbl">Failure path</div>
+  <div class="b" style="height:22px">GCal write fails → retry once → rollback diff → ping. Never leave a half-applied plan.</div>
+</div>
+
+<!-- 4 SETTINGS -->
+<div class="wf"><h4>04 · Settings (web) <span>one page, sections</span></h4>
+  <div class="row" style="align-items:flex-start">
+    <div class="col" style="width:78px"><div class="b s" style="padding:6px 2px">Calendars</div><div class="b" style="padding:6px 2px">Notion</div>
+      <div class="b" style="padding:6px 2px">Notify</div><div class="b" style="padding:6px 2px">Rules</div><div class="b" style="padding:6px 2px">Account</div></div>
+    <div class="col" style="flex:1">
+      <div class="sr"><span>Google Calendar</span><b>you@example.com</b></div>
+      <div class="sr"><span>Write calendar</span><b>Tasks &amp; Todos</b></div>
+      <div class="sr"><span>Prayers calendar</span><b>Prayers</b></div>
+      <div class="sr"><span>Office hours</span><b>10:00–18:30, M–F</b></div>
+      <div class="sr"><span>Planning window</span><b>14 days</b></div>
+      <div class="sr"><span>Min chunk</span><b>30m</b></div>
+      <div class="sr"><span>Notion backup</span><b>every run → PARA</b></div>
+      <div class="sr" style="border:0"><span>Restore from Notion</span><i>manual</i></div>
+    </div>
+  </div>
+  <div class="lbl">Notion = bookkeeper</div>
+  <div class="b g" style="height:34px">Write-only mirror. Read only during restore. If Postgres dies: pick a snapshot → diff vs Notion → rehydrate tasks &amp; habits.</div>
+</div>
+
+<!-- 5 ONBOARDING -->
+<div class="wf"><h4>05 · First run <span>4 steps, skippable</span></h4>
+  <div class="fl"><div class="b a">1 connect<br>Google</div><span class="x">→</span><div class="b">2 location<br>+ method</div><span class="x">→</span><div class="b">3 office<br>hours</div><span class="x">→</span><div class="b">4 seed<br>habits</div></div>
+  <div class="lbl">Step 4 — seed from existing</div>
+  <div class="sr"><span>detected recurring GCal blocks</span><b>Gym, Freshup</b></div>
+  <div class="sr"><span>proposed windows</span><i>editable</i></div>
+  <div class="sr"><span>proposed minimums</span><b>60m / 20m</b></div>
+  <div class="lbl">Guard</div>
+  <div class="b" style="height:26px">First run is read-only: import + propose. No writes until you see the first plan.</div>
+  <div class="lbl">Empty state</div>
+  <div class="b" style="height:24px">“Nothing scheduled yet — add one task or let it import your calendar.”</div>
+</div>
+
+<!-- 6 BULK IMPORT -->
+<div class="wf"><h4>06 · Bulk create <span>paste → parse → confirm</span></h4>
+  <div class="b" style="height:52px;align-items:flex-start;justify-content:flex-start;font-size:7.5px;text-align:left;padding:6px;line-height:1.6">
+    W2D1 — Auth bypass | 2h | High | due Mon<br>
+    W2D2 — Session flaws | 2h | High | due Tue<br>
+    W2D3 — Access control | 1h 45 | after W2D2<br>
+    W2D4 — IDOR practice | (no est) | Med
+  </div>
+  <div class="lbl">Parse result</div>
+  <div class="sr"><span>rows found</span><b>4</b></div>
+  <div class="sr"><span>confident</span><b>3</b></div>
+  <div class="sr"><span>needs a duration</span><b style="color:#C7B183">1</b></div>
+  <div class="sr"><span>dependency chain</span><b>W2D3 → W2D2</b></div>
+  <div class="lbl">Confirm</div>
+  <div class="row"><div class="b" style="flex:1">Edit rows</div><div class="b g" style="flex:1">Create 3, hold 1</div></div>
+  <div class="lbl">Same path for agents</div>
+  <div class="b" style="height:22px">Agent calls the same endpoint → dry-run → you approve in-app or in chat</div>
+</div>
+
+<!-- 7 NOTION RECOVERY -->
+<div class="wf"><h4>07 · Notion recovery <span>backup, not source</span></h4>
+  <div class="fl"><div class="b">app DB</div><span class="x">→</span><div class="b">sync job<br>every run</div><span class="x">→</span><div class="b">Notion PARA<br>Resources</div></div>
+  <div class="ln"></div>
+  <div class="fl"><div class="b a">DB lost</div><span class="x">→</span><div class="b">latest snapshot</div><span class="x">→</span><div class="b">diff vs Notion</div></div>
+  <div class="fl"><div class="b g">rehydrate</div><span class="x">→</span><div class="b">re-plan once</div><span class="x">→</span><div class="b">review Δ</div></div>
+  <div class="lbl">Fields mirrored</div>
+  <div class="sr"><span>title, est, priority, deadline</span><b>✓</b></div>
+  <div class="sr"><span>effort, split, subtasks</span><b>✓</b></div>
+  <div class="sr"><span>depends-on</span><b>✓ relation</b></div>
+  <div class="sr"><span>placement history</span><b>append-only log</b></div>
+  <div class="lbl">Never</div>
+  <div class="b" style="height:22px">Notion is never read during normal scheduling — only on restore.</div>
+</div>
+
+<!-- 8 OVERLOAD -->
+<div class="wf"><h4>08 · Overload resolver <span>flag → choose</span></h4>
+  <div class="b a" style="height:30px">Thu 27 · needs 3h High · has 1h 30m capacity</div>
+  <div class="lbl">Offer three levers — never pick silently</div>
+  <div class="sr"><span>push task to next week</span><b>moves deadline</b></div>
+  <div class="sr"><span>skip a habit occurrence</span><b>frees the block</b></div>
+  <div class="sr"><span>make time (extend day / weekend)</span><b>adds capacity</b></div>
+  <div class="lbl">If you choose nothing</div>
+  <div class="b" style="height:34px">Task stays unscheduled and keeps its flag. Habit minimum stays protected. Badge sits on Today until resolved — no silent overflow, no nagging more than once a day.</div>
+</div>
+
+<!-- 9 MOBILE NAV -->
+<div class="wf"><h4>09 · Mobile surface <span>5 tabs, 1 sheet</span></h4>
+  <div style="display:flex;gap:9px;align-items:center">
+    <div class="mob"><div class="top"></div><div class="bx" style="border-color:#6B5B2E"></div><div class="bx"></div><div class="bx"></div><div class="nb"></div></div>
+    <div class="col" style="flex:1;font-size:8px;color:#98A1B0;gap:3px">
+      <div class="sr" style="padding:2px 0"><span>Today</span><b>default landing</b></div>
+      <div class="sr" style="padding:2px 0"><span>Week</span><b>agenda, not grid</b></div>
+      <div class="sr" style="padding:2px 0"><span>Tasks</span><b>inbox + swipe</b></div>
+      <div class="sr" style="padding:2px 0"><span>Habits</span><b>big tick targets</b></div>
+      <div class="sr" style="padding:2px 0;border:0"><span>Prayer</span><b>countdown</b></div>
+      <div class="lbl" style="margin:5px 0 3px">Sheets</div>
+      <div style="font-size:8px;color:#7A8393">Capture · Re-plan diff · Task detail · Skip-with-reason</div>
+    </div>
+  </div>
+  <div class="lbl">Phone ≠ desktop</div>
+  <div class="b" style="height:22px">No week grid on phone — 7 columns at 390px is unreadable. Agenda list with day headers instead.</div>
+</div>
+
+</body></html>
