@@ -117,4 +117,4 @@ priorities. It is a PWA rather than a native app.
 
 ## License
 
-To be decided.
+[MIT](LICENSE) © 2026 Syed Sadiqu Hussain
