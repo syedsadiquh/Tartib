@@ -93,9 +93,9 @@ Phone / Browser ──► Next.js PWA (Vercel) ──/api rewrite──► FastA
 
 - **Engine:** a pure, deterministic Python module. Same inputs, same plan. Every acceptance
   scenario is an automated test.
-- **Backend:** Python 3.12, FastAPI, SQLAlchemy, Postgres 16, a Postgres-backed job queue and
+- **Backend:** Python 3.15, FastAPI, SQLAlchemy 2.1, PostgreSQL 19, a Postgres-backed job queue and
   APScheduler.
-- **Web:** Next.js, TypeScript, Tailwind, TanStack Query, PWA with Serwist.
+- **Web:** Next.js 16, React 19, TypeScript, Tailwind, TanStack Query, PWA with Serwist.
 - **Hosting:** one small VPS (Docker Compose, ~1 GB memory cap, Caddy TLS) for the API,
   worker and database; the web app on Vercel.
 
