@@ -406,3 +406,50 @@ rather than as a change.
 (`feat(F-02): …`) and the PR title. The roadmap line remains the authoritative
 package → change mapping, so nothing depends on the branch name.
 
+## D-35 — Prayer times come from the AlAdhan API, not a local library · PROPOSED (owner request, 2026-11-23)
+
+The owner asked to replace `adhanpy` with the **AlAdhan prayer-times API**
+(`https://api.aladhan.com/v1`, contract: their OpenAPI v1 document). PRY-1/PRY-8 do not
+name an implementation, so the product rules are unchanged; IN-07's implementation and one
+settings field change.
+
+**Decision.**
+- `integrations/prayer_times.py` becomes a port (`PrayerTimes.times(days, cfg)`) with an
+  `AlAdhanTimes` httpx client and a `FrozenTimes` fake; the API is the **reference** value.
+- `PrayerSettings.method` (an `adhanpy` enum name string) becomes **`method_id: int = 1`**
+  — the AlAdhan `method` id (1 = University of Islamic Sciences, Karachi, which preserves
+  the old `KARACHI` default and the 18°/18° angles the plan's cross-check assumes).
+  `madhab` is unchanged in the settings and is sent as AlAdhan `school` (0 shafi, 1 hanafi).
+  Nothing has shipped, so no data migration is needed; DB-02 seeds `method_id`.
+- **Dates go in the path as `DD-MM-YYYY`.** Verified against the live API on 2026-11-23:
+  `timings/2026-11-23` returns **2023** timings for that day/month, and
+  `calendar/from/2026-11-20/to/2026-12-04` returns `500 SERVER_ERROR`, while the same
+  requests with `23-11-2026` / `20-11-2026` are correct. The client therefore formats the
+  path dates itself and **rejects any response whose date is not the one requested**.
+- One range request per calendar month (`/calendar/from/{start}/to/{end}`) with
+  `iso8601=true` and `timezonestring={settings tz}`, so times arrive tz-aware; the API's
+  11-month range cap never applies to our 14-day planning window.
+- The API's per-prayer `tune` string is **not** used: `PrayerConfig.computed_offset_min`
+  already tunes the anchor, and two tuning knobs would silently double-apply.
+- **No Postgres cache table.** The in-process cache plus the in-house NOAA computation as
+  fallback keeps IN-07 self-contained (DB-01 has no schema for it) and keeps PRY-8's
+  disagreement visible instead of burying it in stale rows.
+- Failure path is the conservative one: cache → NOAA cross-check with
+  `PRAYER_TIMES_UNAVAILABLE` (never a silently shifted prayer, never a missing one).
+  Unknown `method_id` → no cross-check, flag `PRAYER_DRIFT_UNVERIFIED`.
+- `adhanpy` is removed from `backend/pyproject.toml` and `uv.lock`; `solar.py` stays.
+
+**Trade-off accepted:** an external service is now on the rendering path for computed
+prayers. It is unauthenticated, cheap (one call per month per config), and the fallback
+path means an outage degrades to in-house timings plus a visible flag rather than a gap.
+
+**Deferred — calculation options the owner will need (owner note, 2026-11-23).** The owner
+wants the app to expose the rest of AlAdhan's calculation surface, not just method and
+madhab: `latitudeAdjustmentMethod` (1–3), `tune` (nine per-prayer minute offsets),
+`shafaq` (method 3 only) and `midnightMode` (0/1). IN-07 ships defaults only; the settings
+model and the settings screen grow the optional fields in a later package (see the table in
+`05-integrations.md` § IN-07). They are optional with the API's own defaults so saved
+settings stay valid, and `solar.py`'s per-method angle table must gain an entry for every
+`method_id` offered in the UI — otherwise the drift guard reports
+`PRAYER_DRIFT_UNVERIFIED`. Recorded now so the backend settings skeleton is shaped for it;
+nothing is implemented in this change.

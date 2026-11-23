@@ -52,7 +52,7 @@ activity written → Notion mirror job enqueued.
 | HTTP client | **httpx** | |
 | Google | `google-auth`, `google-auth-oauthlib`, `google-api-python-client` | |
 | Notion | `notion-client` | |
-| Prayer times | `adhanpy` + in-house NOAA cross-check | see `05-integrations.md` |
+| Prayer times | **AlAdhan REST API** (`api.aladhan.com/v1`) + in-house NOAA cross-check/fallback | no key; dates in the path are `DD-MM-YYYY` (D-35); see `05-integrations.md` |
 | Passkeys | `webauthn` (py_webauthn) | |
 | Push | `pywebpush` | VAPID |
 | Crypto | `cryptography` (Fernet) | encrypt tokens at rest |
@@ -236,6 +236,7 @@ request_id?, job_id?, plan_run_id?`. Never log tokens, codes or the encryption k
 | `SMTP_HOST/PORT/USER/PASSWORD/FROM` | no | | IN-13 |
 | `DISCORD_ALERT_WEBHOOK_URL` | no (UI) | | IN-11 |
 | `HEALTHCHECK_PING_URL` | no (UI) | `https://hc-ping.com/<uuid>` | WK-05 |
+| `ALADHAN_BASE_URL` | no | `https://api.aladhan.com/v1` | IN-07 prayer times; tests use the in-memory port, never the network |
 | `FAKE_GOOGLE` | no | `1` in dev/test → in-memory calendar | IN-04 |
 | `POSTGRES_PASSWORD` | yes (compose) | | db |
 | `API_HOST` | yes (prod compose) | `tartib-api.duckdns.org` | Caddy site address for the API |

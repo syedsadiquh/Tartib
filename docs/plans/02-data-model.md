@@ -679,7 +679,7 @@ class PrayerConfig(BaseModel):
     enabled: bool = True
     mode: Literal["fixed","computed"]
     fixed_time: time | None                # required when mode=fixed
-    computed_offset_min: int = 0           # added to the library time when mode=computed
+    computed_offset_min: int = 0           # added to the AlAdhan time when mode=computed
     duration_min: int
     window_start_offset_min: int           # relative to anchor (can be negative)
     window_end_offset_min: int
@@ -692,8 +692,12 @@ class PrayerSettings(BaseModel):           # "prayers" — SET-6, PRY-*
     longitude: float | None = None
     # While the location is unset, fixed-time prayers are still placed, but computed prayers
     # (e.g. Maghrib) cannot be generated: BE-12 raises flag PRAYER_LOCATION_MISSING, shown in Decisions.
-    method: str = "KARACHI"                # adhanpy CalculationMethod name
-    madhab: Literal["shafi","hanafi"] = "hanafi"
+    method_id: int = 1                     # AlAdhan `method` id (1 = University of Islamic Sciences, Karachi)
+    madhab: Literal["shafi","hanafi"] = "hanafi"   # sent as AlAdhan `school` (0=shafi, 1=hanafi)
+    # Reserved for the deferred calculation options (D-35 addendum, IN-07 table): optional,
+    # defaulted to the API's own defaults when they are added — `latitude_adjustment_method`,
+    # `tune`, `shafaq`, `midnight_mode`. Do NOT add them before IN-07's follow-up: they are not
+    # part of the settings contract yet and nothing should read them.
     jummah_overrides_dhuhr: bool = True
     qada_rule: Literal["after_isha"] = "after_isha"   # PRY-4 (only option)
     qada_cap_per_day: int = 5

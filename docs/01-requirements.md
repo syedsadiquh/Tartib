@@ -223,7 +223,7 @@ first, then by deadline pressure.
 **PRY-7 — Invariants.** A prayer never moves for a habit, task, pinned block or deadline.
 Tasks never overlap a prayer or qada block.
 
-**PRY-8 — Drift guard.** If the computed time differs from the library value by more than
+**PRY-8 — Drift guard.** If the computed time differs from the reference (AlAdhan) value by more than
 10 minutes, raise a flag in the app. Never silently move the evening.
 
 ---
