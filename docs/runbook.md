@@ -60,3 +60,6 @@ the VPS past the soak window.
 - Settings → Account footer: `Tartib vX.Y.Z · API vX.Y.Z`, plus an "update in
   progress" banner when web and API **major.minor** differ (F-07).
 - Docker images tagged `tartib-backend:X.Y.Z` (DP-01/DP-06).
+
+## Releases
+- v0.1.0 — M0 Foundation.
