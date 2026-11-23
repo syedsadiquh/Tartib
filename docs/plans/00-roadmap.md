@@ -75,7 +75,7 @@ M6 Web foundation (parallel, MSW mocks) ─► M7 Web core screens ◄───�
 - [ ] BE-09 Progress, defer, state —
 - [ ] BE-10 Habits CRUD —
 - [ ] BE-11 Habit log/skip/streaks/reactivate —
-- [ ] IN-07 Prayer times & drift —
+- [ ] IN-07 Prayer times & drift — spec revised: AlAdhan API replaces `adhanpy` (D-35)
 - [ ] BE-12 Prayers service —
 - [ ] BE-13 Snapshot & plan run —
 - [ ] IN-04 Calendar port + fake —
