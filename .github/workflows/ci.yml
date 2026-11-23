@@ -147,7 +147,11 @@ jobs:
         uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.15"
-          enable-cache: true
+          # The backend job owns the setup-uv cache. This job restores nothing
+          # and saves nothing: two jobs saving one key race, and the loser logs
+          # "Unable to reserve cache ... another job may be creating this
+          # cache" on every run while the cache is written anyway.
+          enable-cache: false
 
       - name: Install pnpm (version from web/package.json)
         uses: pnpm/action-setup@v6
