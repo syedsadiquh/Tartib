@@ -463,12 +463,16 @@ Three choices F-03 had to make that the plans either contradict or leave open.
   accepted decision D-30 says *latest stable, pinned in the lockfile*. The registry's current
   stable is 12.14.0 and `web/package.json` pins it via `packageManager`. §2's table row is
   stale — it should be read as "pnpm 12" and corrected when that table is next edited.
-- **Node 26 via `.nvmrc`, not the ambient interpreter.** This machine's default `node` is
-  22.14; Node 26 LTS is what the plan pins. `web/.nvmrc` = `26` and `engines.node` =
-  `>=26.0.0`. pnpm does **not** enforce `engines` by default, so `make dev-web` still runs
-  if the shell is on 22 — the pin is advisory until `engine-strict=true` is set. Making it
-  hard-failing would break every dev shell that has not run `nvm use` yet; that switch
-  belongs with F-05 CI, which installs Node 26 explicitly.
+- **Node 26 via `.nvmrc`, enforced only where it matters.** This machine's default `node` is
+  22.14; Node 26 LTS is what the plan pins. `web/.nvmrc` = `26`, `engines.node` = `>=26.0.0`.
+  `engines` alone is advisory (pnpm does not enforce it for scripts, and `engine-strict` only
+  guards installs), so the **test** scripts run `scripts/check-node.mjs` first: a wrong
+  interpreter now fails with "web needs Node 26+ (running 22.14.0)" and the `nvm use` hint
+  instead of dying inside undici. The reason is real, not stylistic — MSW 3 pulls undici 8,
+  which binds `zlib.createZstdDecompress`, absent before Node 22.19; on 22.14 the vitest fork
+  pool dies with "Cannot read properties of undefined (reading 'bind')" and reports **zero
+  tests**, which reads as a broken suite. `pnpm dev` / `build` still run on older Node, since
+  Next only needs 20.9.
 - **Two `create-next-app` defaults removed:** `cacheComponents` and `partialPrefetching`.
   Neither is in the plan, both constrain how future pages may use dynamic APIs (suspense
   boundaries, no `dynamic = "force-dynamic"`), and no screen needs them. Adding them later
