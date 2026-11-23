@@ -1,0 +1,20 @@
+@import "tailwindcss";
+
+/*
+ * Only a neutral base lives here. Design tokens (colours, type scale, radii)
+ * arrive with WEB-01 in src/design/tokens.css and take over from this file.
+ */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
