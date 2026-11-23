@@ -360,3 +360,49 @@ The owner chose `vMAJOR.MINOR.PATCH` with the standard rules. **Decision:**
   Notion layout, manual migrations), MINOR = compatible feature, PATCH = fix.
 - Conventional Commits (scope = work-package ID) plus release-please produce tags, GitHub
   Releases and `CHANGELOG.md`. Details: `docs/plans/12-versioning.md`.
+
+## D-32 — Web make targets no-op until F-03 exists · PROPOSED (F-02)
+
+F-02's *Done when* is "`make check` passes on the empty skeleton", but `make check`
+(`lint` → `typecheck` → `test`) invokes `pnpm` inside `web/`, which has no `package.json`
+until F-03. Without a guard the gate is unachievable, and F-03 is not F-02's dependency.
+
+**Decision:** the four web-facing targets (`lint`, `typecheck`, `test-web`, `test-e2e`)
+guard on `web/package.json` and print `SKIP … (F-03)` when it is absent. The guard is
+keyed to that file, so it disappears by itself the moment F-03 lands — nothing to remove
+later, and CI (F-05) still runs the real command once the app exists.
+
+Trade-off accepted: a green `make check` during M0 says nothing about the web app. The
+skip line is printed on every run so it can never be mistaken for a pass.
+
+## D-33 — F-02 creates three files its Files list omits · PROPOSED (F-02)
+
+F-02 lists `config.py`, `clock.py`, `db.py`, `api/app.py`, `tests/test_architecture.py`
+and `scripts/check_no_magic_numbers.py`, but its own steps require three more modules:
+
+- `constants.py` — `check_no_magic_numbers.py` must read the allow-list of technical
+  timeouts from somewhere, and ARCH §3 already places this file in the layout. Populated
+  with only the transport timeouts named in F-02 step 7 (undo, magic link, OAuth state,
+  token refresh, retry backoff), plus the queue poll interval and calendar write attempts
+  from D-29/IN-06. No scheduling value lives here (SET-0).
+- `cli.py` — `pyproject.toml` declares `scheduler-cli = "scheduler.cli:main"`; the entry
+  point must resolve. Ships as a parser that errors on unknown commands; each package adds
+  its own subcommand when it owns one.
+- `engine/__init__.py` — `mypy src/scheduler/engine` and the architecture test both walk
+  that path, and EN-01 fills the package.
+
+**Decision:** ship all three as the minimum that makes F-02's stated gate pass, with no
+behaviour beyond that. Conservative: no command is implemented, no scheduling constant is
+introduced, no engine symbol is defined.
+
+## D-34 — Branch names describe the change; the package ID stays in the commit scope · PROPOSED (F-02)
+
+`AGENTS.md` and `12-versioning.md` require the work-package ID as the Conventional Commit
+scope. Neither prescribes branch naming, and branches like `feat/F-02-…` read as code
+rather than as a change.
+
+**Decision:** branches are `type/kebab-description` cut from `develop`
+(`feat/backend-skeleton`), and the package ID appears only in the commit scope
+(`feat(F-02): …`) and the PR title. The roadmap line remains the authoritative
+package → change mapping, so nothing depends on the branch name.
+
