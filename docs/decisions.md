@@ -488,3 +488,43 @@ cost of a system-UI stack for the two packages until WEB-01 lands.
 `/api/*` rewrite — verified: `/today` returns the full CSP/HSTS set, `/api/health` passes
 through uvicorn's headers untouched. API responses therefore get their security headers from
 Caddy (DP-03) and FastAPI (BE-01), not from the web app.
+
+## D-37 — F-05 runs the gates it can: four of them start dormant · PROPOSED (F-05)
+
+`11-testing.md` §3 lists five CI gates. Three of them cannot be satisfied at M0 without doing
+work the roadmap schedules for later packages, and one names infrastructure that does not
+exist yet. **Decision:** ship every gate as a real step, and let the ones that cannot bind
+print a visible `SKIP … (owned by <package>)` and exit 0 — the same pattern D-32 used for the
+web targets, so nothing passes silently and nothing must be edited to switch a gate on.
+
+1. **Total backend coverage starts at 20 %, not 80 %.** Measured on the skeleton: **20.66 %**
+   over 121 statements. The four uncovered modules are F-02's stubs (`config.py`, `db.py`,
+   `cli.py`, `constants.py`); testing them belongs to the packages that put behaviour in them
+   (DB-01, BE-01, IN-01), not to a CI package. The floor sits in
+   `[tool.coverage.report] fail_under` so it blocks backsliding from today, and the plan's
+   80 % binds from M3, when `services/` exists. Raise it in the same commit as each package
+   that adds tests — never lower it.
+2. **Per-package gates are live but dormant.** `engine/` ≥ 95 % and `services/` ≥ 85 % exist
+   as steps that SKIP while those directories contain no modules with statements. Today both
+   are empty (`engine/__init__.py` only, `services/` has no files), and any `--fail-under`
+   against them reports 0 % and fails — verified, not assumed.
+3. **Web coverage (≥ 70 % on `features/` and `lib/`) is not wired yet.** Neither directory
+   exists until WEB-1x; a coverage threshold over an empty include is a red gate with no
+   signal. It arrives with the first screen package.
+4. **The e2e job runs Playwright's own webServer (`pnpm dev`), not the compose stack.**
+   §3 says "against `docker compose` stack with `FAKE_GOOGLE=1`", but the production compose
+   file is DP-01/DP-02 and `FAKE_GOOGLE=1` alone provides no stack. The foundation smoke spec
+   needs only the Next server. Revisit when DP-02 lands; the job already runs only on `main`
+   and on PRs labelled `e2e`.
+5. **The OpenAPI drift check SKIPs until `web/src/api/schema.d.ts` exists** (BE-01 emits the
+   spec, WEB-04 commits the generated types). The step is written, not merely planned.
+
+**Also decided here:** the backend job pins `TZ=UTC` (FR-6 — a test that only passes in IST
+must fail), the `postgres:19` service is started even though no test touches the database yet
+so DB-01 inherits a working job, and pnpm is installed with `pnpm/action-setup` reading
+`package_json_file: web/package.json` because **Node 26 no longer bundles corepack** — the
+plan's `corepack enable` path is not available on the pinned runtime.
+
+**Trade-off accepted:** a green CI at M0 does not yet prove the 80 %-coverage or web-coverage
+intentions. Every dormant gate names its owner on every run, and this entry is the record of
+when each one starts to bind.
