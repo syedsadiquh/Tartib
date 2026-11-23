@@ -401,6 +401,8 @@ introduced, no engine symbol is defined.
 scope. Neither prescribes branch naming, and branches like `feat/F-02-…` read as code
 rather than as a change.
 
+**Decision:** (the commit-scope rule in this entry is superseded by D-39: areas, not
+package codes)
 **Decision:** branches are `type/kebab-description` cut from `develop`
 (`feat/backend-skeleton`), and the package ID appears only in the commit scope
 (`feat(F-02): …`) and the PR title. The roadmap line remains the authoritative
@@ -528,3 +530,60 @@ plan's `corepack enable` path is not available on the pinned runtime.
 **Trade-off accepted:** a green CI at M0 does not yet prove the 80 %-coverage or web-coverage
 intentions. Every dormant gate names its owner on every run, and this entry is the record of
 when each one starts to bind.
+
+## D-38 — F-06 ships release-please only; commit style stays a convention · PROPOSED (F-06)
+
+`12-versioning.md` §3 and F-06's *Files* list also call for a `commitlint.yml` workflow and a
+`commitlint.config.js` that lint PR titles and commit subjects. Owner's call: Conventional
+Commits is a rule for whoever *writes* the commits (agents, per `AGENTS.md` and D-34) — not a
+project guarantee worth a CI gate. The plan sections are updated to match this entry.
+
+**Decision.**
+- **No commit-linting workflow or config ships.** F-06 is release-please, the version reset and
+  the runbook. The convention is enforced by review.
+- **`bot/pyproject.toml` is dropped from `extra-files`.** §3's config lists it, but `bot/`
+  contains only a README, and release-please fails on a missing `extra-file` path. Add it back
+  in BOT-01 together with the bot's version bump.
+- **Both versions reset `0.1.0` → `0.0.0`** (F-06 step 3), including `backend/uv.lock`, which
+  records the local package's version — that file has to move with the change. This is the last
+  hand-edit of either version; release-please owns them from now on.
+- `docs/runbook.md` documents the `Release-As` footer flow that pins a milestone to its exact
+  version (`chore(release): M0 complete` + `Release-As: 0.1.0`).
+
+**Not verifiable here:** F-06's *Done when* ("merging a `feat(F-06)` PR produces a Release PR
+proposing `v0.0.1`") needs a push to `main`; release-please only runs there. The first real
+Release PR appears at the M0 `develop` → `main` merge, so the roadmap line records what was
+built and what stays unproven instead of claiming a pass.
+
+**If commit linting is ever wanted again:** `scope-enum` compares the scope by exact string, so
+`["F-06"]` passes while `[/^[A-Z]+-\d+$/]` fails for the same message (verified against
+`@commitlint/cli`), and a custom rule needs a plugin resolvable from `node_modules` — a plain
+script over `git log --no-merges` is less machinery than bending commitlint to it.
+
+**Trade-off accepted:** nothing catches a malformed commit subject, and release-please silently
+omits it from the changelog — a worse changelog is cheaper than a gate the owner does not want.
+
+## D-39 — Commit scopes are areas, not work-package codes · PROPOSED (owner, 2026-11-23)
+
+D-34 and `AGENTS.md` required the roadmap package code as the commit scope, and the first M0
+packages were committed that way (`ci(F-05): …`, `docs(F-03): …`). The owner rejects it: `F-03`
+and `BE-27` read as internal ticket numbers in `git log`, which is exactly where a reader looks
+for what happened. A commit cannot be labelled with something only the roadmap understands.
+
+**Decision.** The scope is an **area**, from a fixed list, or omitted when the change is
+repo-wide:
+
+`engine` · `api` · `worker` · `web` · `db` · `deploy` · `bot` · `ci` · `docs` · `plans` ·
+`release` · `deps` · `repo`
+
+`feat(engine): prayer placement…`, `fix(api): …`, `chore(release): …`, `ci: …`.
+The package ID lives in the PR body, the roadmap line and this log — never in the commit
+subject or the PR title (that half of D-34 stands). Breaking changes use
+`feat(engine)!:` plus the `BREAKING CHANGE:` footer.
+
+**Consequences.**
+- `AGENTS.md`, `12-versioning.md` §3 and D-34 are updated in this change, so the next agent
+  does not follow the stale line.
+- Merged history is **not** rewritten: the M0 commits keep their codes. Their intent is still
+  readable from the roadmap, which is the authoritative package → change mapping.
+- Nothing enforces this (D-38), so it is review-enforced like the rest of the convention.
