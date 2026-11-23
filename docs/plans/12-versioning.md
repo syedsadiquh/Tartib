@@ -63,16 +63,21 @@ Patch releases (`v0.8.1`, …) ship whenever fixes land between milestones.
 
 ## 3. Commits → versions (automated)
 
-Commits follow **Conventional Commits**, with the work-package ID as the scope:
+Commits follow **Conventional Commits**, scoped by **area**, never by work-package code (a
+convention for whoever writes the commits, not a CI gate — D-38; scope rule — D-39):
 
 ```
-feat(EN-05): prayer placement, shifting and qada stacking
-fix(BE-14): roll back created events when the second patch fails
+feat(engine): prayer placement, shifting and qada stacking
+fix(api): roll back created events when the second patch fails
 docs(plans): clarify D-24 overflow
-test(EN-15): property test for idempotence
+test(engine): property test for idempotence
 chore(deps): bump fastapi to 0.166
-feat(BE-07)!: rename task.est_min to task.estimate_min        ← "!" = breaking
+feat(engine)!: rename task.est_min to task.estimate_min       ← "!" = breaking
 ```
+
+Areas: `engine`, `api`, `worker`, `web`, `db`, `deploy`, `bot`, `ci`, `docs`, `plans`,
+`release`, `deps`, `repo`. The package ID goes in the PR body, the roadmap line and
+`decisions.md`.
 Types: `feat`, `fix`, `perf`, `refactor`, `test`, `docs`, `build`, `ci`, `chore`, `revert`.
 A breaking change uses `!` after the scope **and** a `BREAKING CHANGE:` footer explaining the
 migration.
@@ -123,12 +128,12 @@ the next version and the generated `CHANGELOG.md`. Merging that PR creates the g
 ### F-06 — Conventional Commits & release-please
 **Depends on:** F-05 **Size:** S
 **Files:** `.github/workflows/release-please.yml`, `release-please-config.json`,
-`.release-please-manifest.json`, `CHANGELOG.md` (generated), `.github/workflows/commitlint.yml`
-(or a commit-msg check in CI), `commitlint.config.js`
+`.release-please-manifest.json`, `CHANGELOG.md` (generated), `docs/runbook.md`
 **Steps:**
 1. Add the release-please workflow (on push to `main`) with the config in §3.
-2. Lint PR titles and commits against Conventional Commits; the scope must be a package ID
-   (`^[A-Z]+-\d+$`) or one of `plans|deps|release|repo`.
+2. Conventional Commits stays a **working convention**, not a CI gate: no commitlint
+   workflow or config ships (D-38). The scope must be a package ID (`^[A-Z]+-\d+$`) or one of
+   `plans|deps|release|repo`; review enforces it.
 3. Set `version = "0.0.0"` in `backend/pyproject.toml` and `web/package.json` so release-please
    owns them from now on.
 **Done when:** merging a `feat(F-06): …` PR produces a Release PR proposing `v0.0.1` with a

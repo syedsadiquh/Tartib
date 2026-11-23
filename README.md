@@ -110,6 +110,23 @@ deploy/      Docker Compose, Caddy, server scripts
 bot/         optional Discord shim
 ```
 
+## Local development
+
+Prerequisites: `uv` (Python 3.15), `pnpm`, Docker (for Postgres + mailpit).
+
+```bash
+cp .env.example .env        # fill APP_ENCRYPTION_KEY, APP_SESSION_SECRET, OWNER_EMAIL
+make dev-db                 # Postgres on :5433, mailpit UI on :8025
+make migrate seed           # schema + default settings
+make dev-api                # FastAPI on :8000 (FAKE_GOOGLE=1 needs no Google account)
+make dev-worker             # job queue + scheduled jobs
+make dev-web                # Next.js on :3000, rewrites /api → :8000
+make check                  # lint + typecheck + all unit/service/API tests
+```
+
+`make help` lists every target. Real Google Calendar is off the critical path: with
+`FAKE_GOOGLE=1` (the dev default) the API talks to an in-memory calendar.
+
 ## Non-goals
 
 Tartib is not a meeting or booking tool, not multi-user, and won't let an AI decide your

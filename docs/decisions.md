@@ -360,3 +360,230 @@ The owner chose `vMAJOR.MINOR.PATCH` with the standard rules. **Decision:**
   Notion layout, manual migrations), MINOR = compatible feature, PATCH = fix.
 - Conventional Commits (scope = work-package ID) plus release-please produce tags, GitHub
   Releases and `CHANGELOG.md`. Details: `docs/plans/12-versioning.md`.
+
+## D-32 — Web make targets no-op until F-03 exists · PROPOSED (F-02)
+
+F-02's *Done when* is "`make check` passes on the empty skeleton", but `make check`
+(`lint` → `typecheck` → `test`) invokes `pnpm` inside `web/`, which has no `package.json`
+until F-03. Without a guard the gate is unachievable, and F-03 is not F-02's dependency.
+
+**Decision:** the four web-facing targets (`lint`, `typecheck`, `test-web`, `test-e2e`)
+guard on `web/package.json` and print `SKIP … (F-03)` when it is absent. The guard is
+keyed to that file, so it disappears by itself the moment F-03 lands — nothing to remove
+later, and CI (F-05) still runs the real command once the app exists.
+
+Trade-off accepted: a green `make check` during M0 says nothing about the web app. The
+skip line is printed on every run so it can never be mistaken for a pass.
+
+## D-33 — F-02 creates three files its Files list omits · PROPOSED (F-02)
+
+F-02 lists `config.py`, `clock.py`, `db.py`, `api/app.py`, `tests/test_architecture.py`
+and `scripts/check_no_magic_numbers.py`, but its own steps require three more modules:
+
+- `constants.py` — `check_no_magic_numbers.py` must read the allow-list of technical
+  timeouts from somewhere, and ARCH §3 already places this file in the layout. Populated
+  with only the transport timeouts named in F-02 step 7 (undo, magic link, OAuth state,
+  token refresh, retry backoff), plus the queue poll interval and calendar write attempts
+  from D-29/IN-06. No scheduling value lives here (SET-0).
+- `cli.py` — `pyproject.toml` declares `scheduler-cli = "scheduler.cli:main"`; the entry
+  point must resolve. Ships as a parser that errors on unknown commands; each package adds
+  its own subcommand when it owns one.
+- `engine/__init__.py` — `mypy src/scheduler/engine` and the architecture test both walk
+  that path, and EN-01 fills the package.
+
+**Decision:** ship all three as the minimum that makes F-02's stated gate pass, with no
+behaviour beyond that. Conservative: no command is implemented, no scheduling constant is
+introduced, no engine symbol is defined.
+
+## D-34 — Branch names describe the change; the package ID stays in the commit scope · PROPOSED (F-02)
+
+`AGENTS.md` and `12-versioning.md` require the work-package ID as the Conventional Commit
+scope. Neither prescribes branch naming, and branches like `feat/F-02-…` read as code
+rather than as a change.
+
+**Decision:** (the commit-scope rule in this entry is superseded by D-39: areas, not
+package codes)
+**Decision:** branches are `type/kebab-description` cut from `develop`
+(`feat/backend-skeleton`), and the package ID appears only in the commit scope
+(`feat(F-02): …`) and the PR title. The roadmap line remains the authoritative
+package → change mapping, so nothing depends on the branch name.
+
+## D-35 — Prayer times come from the AlAdhan API, not a local library · PROPOSED (owner request, 2026-11-23)
+
+The owner asked to replace `adhanpy` with the **AlAdhan prayer-times API**
+(`https://api.aladhan.com/v1`, contract: their OpenAPI v1 document). PRY-1/PRY-8 do not
+name an implementation, so the product rules are unchanged; IN-07's implementation and one
+settings field change.
+
+**Decision.**
+- `integrations/prayer_times.py` becomes a port (`PrayerTimes.times(days, cfg)`) with an
+  `AlAdhanTimes` httpx client and a `FrozenTimes` fake; the API is the **reference** value.
+- `PrayerSettings.method` (an `adhanpy` enum name string) becomes **`method_id: int = 1`**
+  — the AlAdhan `method` id (1 = University of Islamic Sciences, Karachi, which preserves
+  the old `KARACHI` default and the 18°/18° angles the plan's cross-check assumes).
+  `madhab` is unchanged in the settings and is sent as AlAdhan `school` (0 shafi, 1 hanafi).
+  Nothing has shipped, so no data migration is needed; DB-02 seeds `method_id`.
+- **Dates go in the path as `DD-MM-YYYY`.** Verified against the live API on 2026-11-23:
+  `timings/2026-11-23` returns **2023** timings for that day/month, and
+  `calendar/from/2026-11-20/to/2026-12-04` returns `500 SERVER_ERROR`, while the same
+  requests with `23-11-2026` / `20-11-2026` are correct. The client therefore formats the
+  path dates itself and **rejects any response whose date is not the one requested**.
+- One range request per calendar month (`/calendar/from/{start}/to/{end}`) with
+  `iso8601=true` and `timezonestring={settings tz}`, so times arrive tz-aware; the API's
+  11-month range cap never applies to our 14-day planning window.
+- The API's per-prayer `tune` string is **not** used: `PrayerConfig.computed_offset_min`
+  already tunes the anchor, and two tuning knobs would silently double-apply.
+- **No Postgres cache table.** The in-process cache plus the in-house NOAA computation as
+  fallback keeps IN-07 self-contained (DB-01 has no schema for it) and keeps PRY-8's
+  disagreement visible instead of burying it in stale rows.
+- Failure path is the conservative one: cache → NOAA cross-check with
+  `PRAYER_TIMES_UNAVAILABLE` (never a silently shifted prayer, never a missing one).
+  Unknown `method_id` → no cross-check, flag `PRAYER_DRIFT_UNVERIFIED`.
+- `adhanpy` is removed from `backend/pyproject.toml` and `uv.lock`; `solar.py` stays.
+
+**Trade-off accepted:** an external service is now on the rendering path for computed
+prayers. It is unauthenticated, cheap (one call per month per config), and the fallback
+path means an outage degrades to in-house timings plus a visible flag rather than a gap.
+
+**Deferred — calculation options the owner will need (owner note, 2026-11-23).** The owner
+wants the app to expose the rest of AlAdhan's calculation surface, not just method and
+madhab: `latitudeAdjustmentMethod` (1–3), `tune` (nine per-prayer minute offsets),
+`shafaq` (method 3 only) and `midnightMode` (0/1). IN-07 ships defaults only; the settings
+model and the settings screen grow the optional fields in a later package (see the table in
+`05-integrations.md` § IN-07). They are optional with the API's own defaults so saved
+settings stay valid, and `solar.py`'s per-method angle table must gain an entry for every
+`method_id` offered in the UI — otherwise the drift guard reports
+`PRAYER_DRIFT_UNVERIFIED`. Recorded now so the backend settings skeleton is shaped for it;
+nothing is implemented in this change.
+
+## D-36 — F-03 pins Node 26 / pnpm 12 and drops two scaffold defaults · PROPOSED (F-03)
+
+Three choices F-03 had to make that the plans either contradict or leave open.
+
+**Decision.**
+- **pnpm 12, not 10.** `01-architecture.md` §2 still says "pnpm 10 (via corepack)", but
+  accepted decision D-30 says *latest stable, pinned in the lockfile*. The registry's current
+  stable is 12.14.0 and `web/package.json` pins it via `packageManager`. §2's table row is
+  stale — it should be read as "pnpm 12" and corrected when that table is next edited.
+- **Node 26 via `.nvmrc`, enforced only where it matters.** This machine's default `node` is
+  22.14; Node 26 LTS is what the plan pins. `web/.nvmrc` = `26`, `engines.node` = `>=26.0.0`.
+  `engines` alone is advisory (pnpm does not enforce it for scripts, and `engine-strict` only
+  guards installs), so the **test** scripts run `scripts/check-node.mjs` first: a wrong
+  interpreter now fails with "web needs Node 26+ (running 22.14.0)" and the `nvm use` hint
+  instead of dying inside undici. The reason is real, not stylistic — MSW 3 pulls undici 8,
+  which binds `zlib.createZstdDecompress`, absent before Node 22.19; on 22.14 the vitest fork
+  pool dies with "Cannot read properties of undefined (reading 'bind')" and reports **zero
+  tests**, which reads as a broken suite. `pnpm dev` / `build` still run on older Node, since
+  Next only needs 20.9.
+- **Two `create-next-app` defaults removed:** `cacheComponents` and `partialPrefetching`.
+  Neither is in the plan, both constrain how future pages may use dynamic APIs (suspense
+  boundaries, no `dynamic = "force-dynamic"`), and no screen needs them. Adding them later
+  is a one-line change per flag if a cache-heavy screen wants it.
+- **No `next/font` in the skeleton.** The scaffold's Geist setup made `next build` depend on
+  a Google Fonts fetch. WEB-01 introduces Inter + JetBrains Mono through `tokens.css` and
+  `next/font` deliberately, with the fallback stack the plan already specifies.
+
+**Trade-off accepted:** the web app builds and tests without network access to Google, at the
+cost of a system-UI stack for the two packages until WEB-01 lands.
+
+**Note on headers:** `next.config.ts` `headers()` applies to app routes but **not** to the
+`/api/*` rewrite — verified: `/today` returns the full CSP/HSTS set, `/api/health` passes
+through uvicorn's headers untouched. API responses therefore get their security headers from
+Caddy (DP-03) and FastAPI (BE-01), not from the web app.
+
+## D-37 — F-05 runs the gates it can: four of them start dormant · PROPOSED (F-05)
+
+`11-testing.md` §3 lists five CI gates. Three of them cannot be satisfied at M0 without doing
+work the roadmap schedules for later packages, and one names infrastructure that does not
+exist yet. **Decision:** ship every gate as a real step, and let the ones that cannot bind
+print a visible `SKIP … (owned by <package>)` and exit 0 — the same pattern D-32 used for the
+web targets, so nothing passes silently and nothing must be edited to switch a gate on.
+
+1. **Total backend coverage starts at 20 %, not 80 %.** Measured on the skeleton: **20.66 %**
+   over 121 statements. The four uncovered modules are F-02's stubs (`config.py`, `db.py`,
+   `cli.py`, `constants.py`); testing them belongs to the packages that put behaviour in them
+   (DB-01, BE-01, IN-01), not to a CI package. The floor sits in
+   `[tool.coverage.report] fail_under` so it blocks backsliding from today, and the plan's
+   80 % binds from M3, when `services/` exists. Raise it in the same commit as each package
+   that adds tests — never lower it.
+2. **Per-package gates are live but dormant.** `engine/` ≥ 95 % and `services/` ≥ 85 % exist
+   as steps that SKIP while those directories contain no modules with statements. Today both
+   are empty (`engine/__init__.py` only, `services/` has no files), and any `--fail-under`
+   against them reports 0 % and fails — verified, not assumed.
+3. **Web coverage (≥ 70 % on `features/` and `lib/`) is not wired yet.** Neither directory
+   exists until WEB-1x; a coverage threshold over an empty include is a red gate with no
+   signal. It arrives with the first screen package.
+4. **The e2e job runs Playwright's own webServer (`pnpm dev`), not the compose stack.**
+   §3 says "against `docker compose` stack with `FAKE_GOOGLE=1`", but the production compose
+   file is DP-01/DP-02 and `FAKE_GOOGLE=1` alone provides no stack. The foundation smoke spec
+   needs only the Next server. Revisit when DP-02 lands; the job already runs only on `main`
+   and on PRs labelled `e2e`.
+5. **The OpenAPI drift check SKIPs until `web/src/api/schema.d.ts` exists** (BE-01 emits the
+   spec, WEB-04 commits the generated types). The step is written, not merely planned.
+
+**Also decided here:** the backend job pins `TZ=UTC` (FR-6 — a test that only passes in IST
+must fail), the `postgres:19` service is started even though no test touches the database yet
+so DB-01 inherits a working job, and pnpm is installed with `pnpm/action-setup` reading
+`package_json_file: web/package.json` because **Node 26 no longer bundles corepack** — the
+plan's `corepack enable` path is not available on the pinned runtime.
+
+**Trade-off accepted:** a green CI at M0 does not yet prove the 80 %-coverage or web-coverage
+intentions. Every dormant gate names its owner on every run, and this entry is the record of
+when each one starts to bind.
+
+## D-38 — F-06 ships release-please only; commit style stays a convention · PROPOSED (F-06)
+
+`12-versioning.md` §3 and F-06's *Files* list also call for a `commitlint.yml` workflow and a
+`commitlint.config.js` that lint PR titles and commit subjects. Owner's call: Conventional
+Commits is a rule for whoever *writes* the commits (agents, per `AGENTS.md` and D-34) — not a
+project guarantee worth a CI gate. The plan sections are updated to match this entry.
+
+**Decision.**
+- **No commit-linting workflow or config ships.** F-06 is release-please, the version reset and
+  the runbook. The convention is enforced by review.
+- **`bot/pyproject.toml` is dropped from `extra-files`.** §3's config lists it, but `bot/`
+  contains only a README, and release-please fails on a missing `extra-file` path. Add it back
+  in BOT-01 together with the bot's version bump.
+- **Both versions reset `0.1.0` → `0.0.0`** (F-06 step 3), including `backend/uv.lock`, which
+  records the local package's version — that file has to move with the change. This is the last
+  hand-edit of either version; release-please owns them from now on.
+- `docs/runbook.md` documents the `Release-As` footer flow that pins a milestone to its exact
+  version (`chore(release): M0 complete` + `Release-As: 0.1.0`).
+
+**Not verifiable here:** F-06's *Done when* ("merging a `feat(F-06)` PR produces a Release PR
+proposing `v0.0.1`") needs a push to `main`; release-please only runs there. The first real
+Release PR appears at the M0 `develop` → `main` merge, so the roadmap line records what was
+built and what stays unproven instead of claiming a pass.
+
+**If commit linting is ever wanted again:** `scope-enum` compares the scope by exact string, so
+`["F-06"]` passes while `[/^[A-Z]+-\d+$/]` fails for the same message (verified against
+`@commitlint/cli`), and a custom rule needs a plugin resolvable from `node_modules` — a plain
+script over `git log --no-merges` is less machinery than bending commitlint to it.
+
+**Trade-off accepted:** nothing catches a malformed commit subject, and release-please silently
+omits it from the changelog — a worse changelog is cheaper than a gate the owner does not want.
+
+## D-39 — Commit scopes are areas, not work-package codes · PROPOSED (owner, 2026-11-23)
+
+D-34 and `AGENTS.md` required the roadmap package code as the commit scope, and the first M0
+packages were committed that way (`ci(F-05): …`, `docs(F-03): …`). The owner rejects it: `F-03`
+and `BE-27` read as internal ticket numbers in `git log`, which is exactly where a reader looks
+for what happened. A commit cannot be labelled with something only the roadmap understands.
+
+**Decision.** The scope is an **area**, from a fixed list, or omitted when the change is
+repo-wide:
+
+`engine` · `api` · `worker` · `web` · `db` · `deploy` · `bot` · `ci` · `docs` · `plans` ·
+`release` · `deps` · `repo`
+
+`feat(engine): prayer placement…`, `fix(api): …`, `chore(release): …`, `ci: …`.
+The package ID lives in the PR body, the roadmap line and this log — never in the commit
+subject or the PR title (that half of D-34 stands). Breaking changes use
+`feat(engine)!:` plus the `BREAKING CHANGE:` footer.
+
+**Consequences.**
+- `AGENTS.md`, `12-versioning.md` §3 and D-34 are updated in this change, so the next agent
+  does not follow the stale line.
+- Merged history is **not** rewritten: the M0 commits keep their codes. Their intent is still
+  readable from the roadmap, which is the authoritative package → change mapping.
+- Nothing enforces this (D-38), so it is review-enforced like the rest of the convention.

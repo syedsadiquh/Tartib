@@ -49,9 +49,12 @@ make test-e2e      # Playwright against the compose stack
 
 ## Finishing a package
 - Tick it in `docs/plans/00-roadmap.md` with a one-line note.
-- Commit message: Conventional Commits with the package ID as scope —
-  `feat(EN-05): prayer placement, shifting and qada stacking`, `fix(BE-14): …`, `test(EN-15): …`.
-  Breaking change → `feat(BE-07)!: …` plus a `BREAKING CHANGE:` footer. Versions and the
+- Commit message: Conventional Commits with an **area** as the scope, never a work-package code —
+  `feat(engine): prayer placement, shifting and qada stacking`, `fix(api): …`, `ci: …`.
+  Areas: `engine`, `api`, `worker`, `web`, `db`, `deploy`, `bot`, `ci`, `docs`, `plans`,
+  `release`, `deps`, `repo`. The package ID (`EN-05`) belongs in the PR body, the roadmap line
+  and the decision log — it reads as an internal ticket in `git log` (D-39).
+  Breaking change → `feat(engine)!: …` plus a `BREAKING CHANGE:` footer. Versions and the
   changelog are produced by release-please; never edit version numbers by hand
   (`docs/plans/12-versioning.md`).
 - No AI attribution lines (`Co-Authored-By`, "Generated with …") in commits or PRs.
