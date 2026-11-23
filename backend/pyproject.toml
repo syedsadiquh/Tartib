@@ -36,6 +36,7 @@ dev = [
     "time-machine>=3",
     "ruff>=0.14",
     "mypy>=1.18",
+    "httpx2>=2.16.2",
 ]
 
 [build-system]
