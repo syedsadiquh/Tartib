@@ -66,3 +66,16 @@ strict = true
 testpaths = ["tests"]
 pythonpath = ["src"]
 filterwarnings = ["error"]
+
+[tool.coverage.run]
+source = ["scheduler"]
+
+# Gate per 11-testing.md §3: engine/ >= 95, services/ >= 85, total >= 80.
+# The total gate starts at the M0 floor (measured 20.66 % on the skeleton) and is
+# raised by each package that lands tests for what it ships; 80 % binds from M3
+# on. Per-package gates are enforced in CI and skip while a package has no
+# modules (see .github/workflows/ci.yml). Recorded in D-37.
+[tool.coverage.report]
+fail_under = 20
+show_missing = true
+skip_covered = true

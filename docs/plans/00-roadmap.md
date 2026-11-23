@@ -36,7 +36,7 @@ M6 Web foundation (parallel, MSW mocks) ─► M7 Web core screens ◄───�
 - [x] F-02 Backend skeleton & architecture guards — src layout on Python 3.15 (uv supplies it; system python is 3.9), console-script stubs and `constants.py` added per D-33, web make targets guarded per D-32; guards proven to fail on a planted `import sqlalchemy` and `datetime.now()`
 - [x] F-03 Web skeleton — Next 16.4.6 / React 19.3 / Tailwind 4.3.3 scaffolded; `/api` rewrite + security headers proven against a live uvicorn (`server: uvicorn` on `/api/health`); Vitest+MSW wired (4 tests) and `/` → `/today` verified. `make check` green with no SKIP lines — the D-32 guard retired itself as designed. Dropped `cacheComponents`/`partialPrefetching`/`next/font` from the scaffold (D-36)
 - [x] F-04 Local dev stack — compose + `initdb/01-test-db.sql` had already landed in the scaffold and were untested; verified here end-to-end on Docker 29.8: PG 19 healthy on `:5433`, both `tartib` and `tartib_test` accept the app's own psycopg driver, mailpit answers 200 on `:8025`, and `PG_VERSION` sits under `/var/lib/postgresql/19`, proving the 18+ mount path. `psql` is not installed on this host, so the check used psycopg instead of the CLI the plan names. No code changes were needed
-- [ ] F-05 CI —
+- [x] F-05 CI — four jobs in `.github/workflows/ci.yml`; green on PR #16 (`backend` 26 s, `web` 39 s, `openapi drift` 34 s, `e2e` skipped on a branch PR as designed). Dormant gates print `SKIP … (owned by …)` in the real logs, not just in the plan (D-37). First run failed because `uv sync` ran at the repo root instead of `backend/` — fixed in `8bfbced`; the coverage floor is the measured 20.66 % until M3
 - [ ] F-06 Conventional Commits & release-please —
 
 ## M1 — Data  →  release `v0.2.0`
