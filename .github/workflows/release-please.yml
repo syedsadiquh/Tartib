@@ -18,7 +18,7 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         with:
           # The manifest plus the config file; the action commits the version
           # bumps it finds in `extra-files`.
