@@ -360,3 +360,96 @@ The owner chose `vMAJOR.MINOR.PATCH` with the standard rules. **Decision:**
   Notion layout, manual migrations), MINOR = compatible feature, PATCH = fix.
 - Conventional Commits (scope = work-package ID) plus release-please produce tags, GitHub
   Releases and `CHANGELOG.md`. Details: `docs/plans/12-versioning.md`.
+
+## D-32 — Web make targets no-op until F-03 exists · PROPOSED (F-02)
+
+F-02's *Done when* is "`make check` passes on the empty skeleton", but `make check`
+(`lint` → `typecheck` → `test`) invokes `pnpm` inside `web/`, which has no `package.json`
+until F-03. Without a guard the gate is unachievable, and F-03 is not F-02's dependency.
+
+**Decision:** the four web-facing targets (`lint`, `typecheck`, `test-web`, `test-e2e`)
+guard on `web/package.json` and print `SKIP … (F-03)` when it is absent. The guard is
+keyed to that file, so it disappears by itself the moment F-03 lands — nothing to remove
+later, and CI (F-05) still runs the real command once the app exists.
+
+Trade-off accepted: a green `make check` during M0 says nothing about the web app. The
+skip line is printed on every run so it can never be mistaken for a pass.
+
+## D-33 — F-02 creates three files its Files list omits · PROPOSED (F-02)
+
+F-02 lists `config.py`, `clock.py`, `db.py`, `api/app.py`, `tests/test_architecture.py`
+and `scripts/check_no_magic_numbers.py`, but its own steps require three more modules:
+
+- `constants.py` — `check_no_magic_numbers.py` must read the allow-list of technical
+  timeouts from somewhere, and ARCH §3 already places this file in the layout. Populated
+  with only the transport timeouts named in F-02 step 7 (undo, magic link, OAuth state,
+  token refresh, retry backoff), plus the queue poll interval and calendar write attempts
+  from D-29/IN-06. No scheduling value lives here (SET-0).
+- `cli.py` — `pyproject.toml` declares `scheduler-cli = "scheduler.cli:main"`; the entry
+  point must resolve. Ships as a parser that errors on unknown commands; each package adds
+  its own subcommand when it owns one.
+- `engine/__init__.py` — `mypy src/scheduler/engine` and the architecture test both walk
+  that path, and EN-01 fills the package.
+
+**Decision:** ship all three as the minimum that makes F-02's stated gate pass, with no
+behaviour beyond that. Conservative: no command is implemented, no scheduling constant is
+introduced, no engine symbol is defined.
+
+## D-34 — Branch names describe the change; the package ID stays in the commit scope · PROPOSED (F-02)
+
+`AGENTS.md` and `12-versioning.md` require the work-package ID as the Conventional Commit
+scope. Neither prescribes branch naming, and branches like `feat/F-02-…` read as code
+rather than as a change.
+
+**Decision:** branches are `type/kebab-description` cut from `develop`
+(`feat/backend-skeleton`), and the package ID appears only in the commit scope
+(`feat(F-02): …`) and the PR title. The roadmap line remains the authoritative
+package → change mapping, so nothing depends on the branch name.
+
+## D-35 — Prayer times come from the AlAdhan API, not a local library · PROPOSED (owner request, 2026-11-23)
+
+The owner asked to replace `adhanpy` with the **AlAdhan prayer-times API**
+(`https://api.aladhan.com/v1`, contract: their OpenAPI v1 document). PRY-1/PRY-8 do not
+name an implementation, so the product rules are unchanged; IN-07's implementation and one
+settings field change.
+
+**Decision.**
+- `integrations/prayer_times.py` becomes a port (`PrayerTimes.times(days, cfg)`) with an
+  `AlAdhanTimes` httpx client and a `FrozenTimes` fake; the API is the **reference** value.
+- `PrayerSettings.method` (an `adhanpy` enum name string) becomes **`method_id: int = 1`**
+  — the AlAdhan `method` id (1 = University of Islamic Sciences, Karachi, which preserves
+  the old `KARACHI` default and the 18°/18° angles the plan's cross-check assumes).
+  `madhab` is unchanged in the settings and is sent as AlAdhan `school` (0 shafi, 1 hanafi).
+  Nothing has shipped, so no data migration is needed; DB-02 seeds `method_id`.
+- **Dates go in the path as `DD-MM-YYYY`.** Verified against the live API on 2026-11-23:
+  `timings/2026-11-23` returns **2023** timings for that day/month, and
+  `calendar/from/2026-11-20/to/2026-12-04` returns `500 SERVER_ERROR`, while the same
+  requests with `23-11-2026` / `20-11-2026` are correct. The client therefore formats the
+  path dates itself and **rejects any response whose date is not the one requested**.
+- One range request per calendar month (`/calendar/from/{start}/to/{end}`) with
+  `iso8601=true` and `timezonestring={settings tz}`, so times arrive tz-aware; the API's
+  11-month range cap never applies to our 14-day planning window.
+- The API's per-prayer `tune` string is **not** used: `PrayerConfig.computed_offset_min`
+  already tunes the anchor, and two tuning knobs would silently double-apply.
+- **No Postgres cache table.** The in-process cache plus the in-house NOAA computation as
+  fallback keeps IN-07 self-contained (DB-01 has no schema for it) and keeps PRY-8's
+  disagreement visible instead of burying it in stale rows.
+- Failure path is the conservative one: cache → NOAA cross-check with
+  `PRAYER_TIMES_UNAVAILABLE` (never a silently shifted prayer, never a missing one).
+  Unknown `method_id` → no cross-check, flag `PRAYER_DRIFT_UNVERIFIED`.
+- `adhanpy` is removed from `backend/pyproject.toml` and `uv.lock`; `solar.py` stays.
+
+**Trade-off accepted:** an external service is now on the rendering path for computed
+prayers. It is unauthenticated, cheap (one call per month per config), and the fallback
+path means an outage degrades to in-house timings plus a visible flag rather than a gap.
+
+**Deferred — calculation options the owner will need (owner note, 2026-11-23).** The owner
+wants the app to expose the rest of AlAdhan's calculation surface, not just method and
+madhab: `latitudeAdjustmentMethod` (1–3), `tune` (nine per-prayer minute offsets),
+`shafaq` (method 3 only) and `midnightMode` (0/1). IN-07 ships defaults only; the settings
+model and the settings screen grow the optional fields in a later package (see the table in
+`05-integrations.md` § IN-07). They are optional with the API's own defaults so saved
+settings stay valid, and `solar.py`'s per-method angle table must gain an entry for every
+`method_id` offered in the UI — otherwise the drift guard reports
+`PRAYER_DRIFT_UNVERIFIED`. Recorded now so the backend settings skeleton is shaped for it;
+nothing is implemented in this change.

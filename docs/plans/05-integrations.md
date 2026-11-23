@@ -164,28 +164,88 @@ half-applied plan" means we always attempt and always alert. Calendar change of 
 
 ## Prayer times
 
-### IN-07 — Prayer time computation & drift guard
+### IN-07 — Prayer times (AlAdhan API) & drift guard
 **Depends on:** DB-02 **Size:** M
-**Spec:** PRY-1, PRY-8, SET-6
-**Files:** `integrations/prayer_times.py`, `integrations/solar.py`
+**Spec:** PRY-1, PRY-8, SET-6, **D-35**
+**Files:** `integrations/prayer_times.py` (port + AlAdhan client + in-process cache),
+`integrations/solar.py` (in-house NOAA cross-check), `seed/defaults.py` (method name map)
+The reference times come from the **AlAdhan REST API** (`https://api.aladhan.com/v1`, no key);
+nothing is computed from an astronomical library any more. The in-house solar module is kept
+**only** as the cross-check of PRY-8 and as the offline fallback.
+```python
+class PrayerTimes(Protocol):                    # port — IN-07 module exposes one instance
+    def times(self, days: list[date], cfg: PrayerSettings) -> dict[date, dict[str, datetime]]
+class AlAdhanTimes(PrayerTimes): ...            # httpx client, implements the cache
+class FrozenTimes(PrayerTimes): ...             # fixtures, used by every test
+```
 **Steps:**
-1. `library_times(d: date, settings) -> dict[name, datetime]` using `adhanpy`. **Check the
-   installed version's README/signature before writing the call** (the API differs across
-   versions). Expected shape:
-   `params = CalculationMethod[settings.method].parameters` (or `CalculationParameters(method=…)`),
-   `params.madhab = Madhab.HANAFI|SHAFI`, `PrayerTimes((lat, lon), datetime(d), calculation_parameters=params, time_zone=ZoneInfo(tz))`.
-   Pin the result with a regression test for a fixed public test location (Kolkata, 22.5726, 88.3639) on 3 fixed dates so a library upgrade
-   that changes behaviour fails loudly. Convert results to the settings tz.
-2. `crosscheck_times(d, settings) -> dict[name, datetime]`: in-house NOAA solar position
-   implementation (`solar.py`, ~80 lines: declination, equation of time, hour angle for
-   sunset/sunrise and for the method's Fajr/Isha angles, Asr shadow factor 1 (shafi) or 2 (hanafi)).
-   Karachi method: Fajr 18°, Isha 18°.
-3. For each **computed** prayer: anchor = library + `computed_offset_min`;
-   `drift_min = |library − crosscheck|`; `drift_flag = drift_min > drift_threshold_min`.
-4. For fixed prayers, also compute library time for display ("computed ±10") but no drift flag.
-5. Cache per (date, settings hash) in-process.
-**Tests:** known values for the Kolkata test location (22.5726, 88.3639) on a few dates — sunset/maghrib within 2 min
-between both methods; forced bad longitude in crosscheck → drift_flag true.
+1. **Request one range, not one day at a time:**
+   `GET {ALADHAN_BASE_URL}/calendar/from/{start}/to/{end}` with
+   `latitude`, `longitude`, `method={cfg.method_id}`, `school={0 if shafi else 1}`,
+   `timezonestring={settings tz}` and `iso8601=true`; the window is `planning_window_days + 7`
+   days (the API caps a range at 11 months; one call per calendar month per location config).
+2. **Dates in the path are `DD-MM-YYYY`, never ISO.** Verified 2026-11-23: passing
+   `2026-11-23` returns **2023** timings for the same day/month, and the range endpoint
+   answers `500 SERVER_ERROR`; `23-11-2026` returns the right year. So: (a) always format
+   `%d-%m-%Y`; (b) after parsing, assert every returned row's `date.gregorian.date` equals
+   the requested date and that each timing parses with the settings tz offset — a mismatch
+   raises `PrayerTimesError` and the values are **never** used (a silently wrong year is a
+   silently wrong prayer).
+3. With `iso8601=true` timings arrive as `2026-11-23T04:36:00+05:30`; parse with
+   `datetime.fromisoformat`, convert to the settings tz (AGENTS §6). Keep `Fajr, Sunrise,
+   Dhuhr, Asr, Sunset, Maghrib, Isha`; ignore Imsak/Midnight/thirds.
+4. `crosscheck_times(days, cfg) -> dict[date, dict[name, datetime]]`: in-house NOAA solar
+   position (`solar.py`, ~80 lines: declination, equation of time, hour angle for
+   sunrise/sunset and for the method's Fajr/Isha angles, Asr shadow factor 1 (shafi) or
+   2 (hanafi)). Angles come from a small table keyed by `method_id` in `defaults.py`:
+   Karachi (id **1**) = Fajr 18°, Isha 18°. Unknown id → no cross-check, flag
+   `PRAYER_DRIFT_UNVERIFIED`.
+5. For each **computed** prayer: `anchor = api_time + computed_offset_min`;
+   `drift_min = |api_time − crosscheck_time|`; `drift_flag = drift_min > drift_threshold_min`
+   (PRY-8). Fixed prayers only display the API time ("computed ±10"), no flag.
+   The API's `tune` parameter is **not** used — per-prayer `computed_offset_min` already
+   covers tuning and keeps one source of truth (D-35).
+6. **Failure path** (timeout 5 s → one retry after 1 s → give up; `Retry-After` honoured on
+   429/503):
+   cached value for the same `(date, lat, lon, method_id, madhab, tz)` → else
+   `crosscheck_times` with `source='crosscheck'` and flag `PRAYER_TIMES_UNAVAILABLE`.
+   A computed prayer is never placed without a time, and the API is never allowed to move
+   the evening silently.
+7. Cache in-process, keyed `(date, lat, lon, method_id, madhab, tz)`, entries kept until the
+   date passes. Deliberately **no** Postgres cache table (D-35): the NOAA fallback covers
+   cold starts, and PRY-8 wants the disagreement visible, not hidden behind stale rows.
+8. The UI's method **names** come from `GET /methods` (one call, cached 24 h) with the static
+   `PRAYER_METHODS: dict[int, str]` map in `seed/defaults.py` as the offline fallback;
+   `prayers.method_id` is the only stored value.
+**Tests** (`tests/integrations/test_prayer_times.py`, recorded JSON fixtures under
+`tests/fixtures/aladhan/` — no live network, `FrozenTimes` elsewhere): Kolkata
+(22.5726, 88.3639) fixture parses to tz-aware times on 3 fixed dates; a fixture recorded from
+an ISO-dated request (year 2023 in the payload) raises instead of parsing; bad longitude in
+crosscheck → `drift_flag` true; API 500 → crosscheck values + `PRAYER_TIMES_UNAVAILABLE`;
+one range call fills a 30-day window (client is called once); missing location → no API call,
+`PRAYER_LOCATION_MISSING` stays BE-12's flag.
+
+**Deferred — the full calculation-settings surface (owner note, 2026-11-23).** IN-07 sends
+only `method_id`, `madhab`, the coordinates and the timezone; every other AlAdhan knob is
+left at the API's default **for now**. The settings model must eventually let the owner pick
+them from the UI, because they change the times materially and the mosque the family follows
+is not the app's choice:
+
+| AlAdhan param | Values | Planned settings key |
+|---|---|---|
+| `method` | `0`–`23`, `99` (see `GET /methods` for names) | `method_id` (exists, D-35) |
+| `school` | `0` shafi, `1` hanafi — changes **Asr** | `madhab` (exists, mapped) |
+| `latitudeAdjustmentMethod` | `1` middle of the night, `2` one seventh, `3` angle based — matters at high latitudes | `latitude_adjustment_method` |
+| `tune` | `Imsak,Fajr,Sunrise,Dhuhr,Asr,Maghrib,Sunset,Isha,Midnight` minutes | per-prayer offsets (`computed_offset_min`) unless a mosque publishes a full tune string |
+| `shafaq` | `general` \| `ahmer` \| `abyad` — only for method 3 | `shafaq` |
+| `midnightMode` | `0` standard, `1` Jafari | `midnight_mode` |
+
+Rules for whoever implements that follow-up: add the keys as **optional** fields with the
+API's defaults (so existing saved settings keep working), send them only when set, extend the
+settings screen's method block into a "calculation" section (method · madhab · latitude
+adjustment · tune), and re-run the drift cross-check whenever `method_id` or `madhab` changes
+— `solar.py`'s angle table is keyed by `method_id`, so a new id without an entry flags
+`PRAYER_DRIFT_UNVERIFIED` rather than guessing. No key is added in this change.
 
 ---
 

@@ -33,7 +33,7 @@ M6 Web foundation (parallel, MSW mocks) ─► M7 Web core screens ◄───�
 
 ## M0 — Foundation  →  release `v0.1.0`
 - [x] F-01 Repo hygiene & Makefile — scaffold landed in `46ef9f7`; completed here: `web/.next/` ignored, `API_ORIGIN` documented in `.env.example`, dev section added to README
-- [ ] F-02 Backend skeleton & architecture guards —
+- [x] F-02 Backend skeleton & architecture guards — src layout on Python 3.15 (uv supplies it; system python is 3.9), console-script stubs and `constants.py` added per D-33, web make targets guarded per D-32; guards proven to fail on a planted `import sqlalchemy` and `datetime.now()`
 - [ ] F-03 Web skeleton —
 - [ ] F-04 Local dev stack —
 - [ ] F-05 CI —
@@ -75,7 +75,7 @@ M6 Web foundation (parallel, MSW mocks) ─► M7 Web core screens ◄───�
 - [ ] BE-09 Progress, defer, state —
 - [ ] BE-10 Habits CRUD —
 - [ ] BE-11 Habit log/skip/streaks/reactivate —
-- [ ] IN-07 Prayer times & drift —
+- [ ] IN-07 Prayer times & drift — spec revised: AlAdhan API replaces `adhanpy` (D-35)
 - [ ] BE-12 Prayers service —
 - [ ] BE-13 Snapshot & plan run —
 - [ ] IN-04 Calendar port + fake —

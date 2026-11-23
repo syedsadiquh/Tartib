@@ -33,20 +33,20 @@ test-backend: ## Backend tests
 	cd backend && uv run pytest
 
 test-web: ## Web unit tests
-	cd web && pnpm test --run
+	@if [ -f web/package.json ]; then cd web && pnpm test --run; else echo "SKIP test-web: web app not scaffolded yet (F-03)"; fi
 
 test: test-backend test-web ## All unit/service/API tests
 
 test-e2e: ## Playwright against the compose stack (FAKE_GOOGLE=1)
-	cd web && pnpm e2e
+	@if [ -f web/package.json ]; then cd web && pnpm e2e; else echo "SKIP test-e2e: web app not scaffolded yet (F-03)"; fi
 
 lint: ## Lint backend + web
 	cd backend && uv run ruff check . && uv run ruff format --check . && uv run python scripts/check_no_magic_numbers.py
-	cd web && pnpm lint
+	@if [ -f web/package.json ]; then cd web && pnpm lint; else echo "SKIP web lint: web app not scaffolded yet (F-03)"; fi
 
 typecheck: ## Type-check backend engine + web
 	cd backend && uv run mypy src/scheduler/engine
-	cd web && pnpm typecheck
+	@if [ -f web/package.json ]; then cd web && pnpm typecheck; else echo "SKIP web typecheck: web app not scaffolded yet (F-03)"; fi
 
 check: lint typecheck test ## Everything CI runs (except e2e)
 
