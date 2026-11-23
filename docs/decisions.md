@@ -453,3 +453,34 @@ settings stay valid, and `solar.py`'s per-method angle table must gain an entry 
 `method_id` offered in the UI — otherwise the drift guard reports
 `PRAYER_DRIFT_UNVERIFIED`. Recorded now so the backend settings skeleton is shaped for it;
 nothing is implemented in this change.
+
+## D-36 — F-03 pins Node 26 / pnpm 12 and drops two scaffold defaults · PROPOSED (F-03)
+
+Three choices F-03 had to make that the plans either contradict or leave open.
+
+**Decision.**
+- **pnpm 12, not 10.** `01-architecture.md` §2 still says "pnpm 10 (via corepack)", but
+  accepted decision D-30 says *latest stable, pinned in the lockfile*. The registry's current
+  stable is 12.14.0 and `web/package.json` pins it via `packageManager`. §2's table row is
+  stale — it should be read as "pnpm 12" and corrected when that table is next edited.
+- **Node 26 via `.nvmrc`, not the ambient interpreter.** This machine's default `node` is
+  22.14; Node 26 LTS is what the plan pins. `web/.nvmrc` = `26` and `engines.node` =
+  `>=26.0.0`. pnpm does **not** enforce `engines` by default, so `make dev-web` still runs
+  if the shell is on 22 — the pin is advisory until `engine-strict=true` is set. Making it
+  hard-failing would break every dev shell that has not run `nvm use` yet; that switch
+  belongs with F-05 CI, which installs Node 26 explicitly.
+- **Two `create-next-app` defaults removed:** `cacheComponents` and `partialPrefetching`.
+  Neither is in the plan, both constrain how future pages may use dynamic APIs (suspense
+  boundaries, no `dynamic = "force-dynamic"`), and no screen needs them. Adding them later
+  is a one-line change per flag if a cache-heavy screen wants it.
+- **No `next/font` in the skeleton.** The scaffold's Geist setup made `next build` depend on
+  a Google Fonts fetch. WEB-01 introduces Inter + JetBrains Mono through `tokens.css` and
+  `next/font` deliberately, with the fallback stack the plan already specifies.
+
+**Trade-off accepted:** the web app builds and tests without network access to Google, at the
+cost of a system-UI stack for the two packages until WEB-01 lands.
+
+**Note on headers:** `next.config.ts` `headers()` applies to app routes but **not** to the
+`/api/*` rewrite — verified: `/today` returns the full CSP/HSTS set, `/api/health` passes
+through uvicorn's headers untouched. API responses therefore get their security headers from
+Caddy (DP-03) and FastAPI (BE-01), not from the web app.

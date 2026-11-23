@@ -34,7 +34,7 @@ M6 Web foundation (parallel, MSW mocks) ─► M7 Web core screens ◄───�
 ## M0 — Foundation  →  release `v0.1.0`
 - [x] F-01 Repo hygiene & Makefile — scaffold landed in `46ef9f7`; completed here: `web/.next/` ignored, `API_ORIGIN` documented in `.env.example`, dev section added to README
 - [x] F-02 Backend skeleton & architecture guards — src layout on Python 3.15 (uv supplies it; system python is 3.9), console-script stubs and `constants.py` added per D-33, web make targets guarded per D-32; guards proven to fail on a planted `import sqlalchemy` and `datetime.now()`
-- [ ] F-03 Web skeleton —
+- [x] F-03 Web skeleton — Next 16.4.6 / React 19.3 / Tailwind 4.3.3 scaffolded; `/api` rewrite + security headers proven against a live uvicorn (`server: uvicorn` on `/api/health`); Vitest+MSW wired (4 tests) and `/` → `/today` verified. `make check` green with no SKIP lines — the D-32 guard retired itself as designed. Dropped `cacheComponents`/`partialPrefetching`/`next/font` from the scaffold (D-36)
 - [ ] F-04 Local dev stack —
 - [ ] F-05 CI —
 - [ ] F-06 Conventional Commits & release-please —
