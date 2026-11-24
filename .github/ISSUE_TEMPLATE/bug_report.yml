@@ -1,0 +1,52 @@
+name: Bug report
+description: Something scheduled wrong, dropped, or broken
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please **do not** use this form for security problems — see
+        [SECURITY.md](https://github.com/syedsadiquh/tartib/blob/develop/SECURITY.md).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What the app did, including the exact times and calendar you saw.
+      placeholder: The 07:00 prayer block was moved to 07:40 and the habit chunk after it was dropped.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+      description: What should have happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open Today
+        2. Drag ...
+        3. ...
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Shown in the app footer or at `/api/health`.
+      placeholder: v0.1.0
+  - type: input
+    id: environment
+    attributes:
+      label: Browser / OS
+      placeholder: Zen 1.14 on macOS 27.2
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs or screenshots
+      description: |
+        Plan reviews and the engine log (`Engine log` screen) are the most useful evidence for
+        scheduling bugs. Paste them, or drag screenshots in, but **redact calendar names, emails
+        and tokens**.
+      render: text
