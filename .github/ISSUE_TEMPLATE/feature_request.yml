@@ -1,0 +1,29 @@
+name: Feature request
+description: Propose behaviour the product does not have yet
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Read `docs/01-requirements.md` first — §3 lists what is deliberately **out of scope**
+        (meetings/booking links, multi-user, AI prioritisation, native apps, importing from other
+        task apps, a 7-column week on mobile). Requests outside scope will be closed.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What you are trying to do that the app makes hard today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behaviour
+      description: What should happen. Concrete times, screens and rules help.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Including anything the app already does that nearly covers it.

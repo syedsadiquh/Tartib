@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/syedsadiquh/tartib/security/advisories/new
+    about: Report privately — never in a public issue.
+  - name: How this repo is built
+    url: https://github.com/syedsadiquh/tartib/blob/develop/docs/plans/README.md
+    about: The plans, milestones and work-package rules behind the roadmap.
