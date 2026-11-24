@@ -1,0 +1,80 @@
+name: Back-merge
+
+# Release-please cuts tags on `main`, so after every release `main` holds commits
+# `develop` does not: the version bumps in backend/pyproject.toml and
+# web/package.json, .release-please-manifest.json and CHANGELOG.md. This job opens
+# the back-merge PR that returns them, so develop's tree never lies about the
+# current version.
+#
+# Merge that PR with a **merge commit** (never squash or rebase): squashing creates
+# a copy of the release commit on develop instead of sharing the tagged one.
+#
+# It stays quiet when there is nothing to bring back — identical trees mean the two
+# branches already agree (e.g. after a develop -> main promotion) — and it will not
+# open a second PR while one is already open.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - CHANGELOG.md
+      - .release-please-manifest.json
+      - backend/pyproject.toml
+      - web/package.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: back-merge
+  cancel-in-progress: true
+
+jobs:
+  back-merge:
+    name: main -> develop
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Open the back-merge PR if the branches differ
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git fetch --quiet origin main develop
+
+          if git diff --quiet origin/develop origin/main; then
+            echo "develop and main hold identical trees — nothing to back-merge."
+            exit 0
+          fi
+
+          open=$(gh pr list --base develop --head main --state open --json number --jq 'length')
+          if [ "$open" -gt 0 ]; then
+            echo "A back-merge PR is already open; it follows main as it moves."
+            exit 0
+          fi
+
+          body=$(cat <<'EOF'
+          Release-please cut a release on `main`, so `main` now holds commits `develop` does not:
+          the version bumps in `backend/pyproject.toml` and `web/package.json`,
+          `.release-please-manifest.json` and `CHANGELOG.md`.
+
+          Merge this PR **with a merge commit** — never squash or rebase — so `develop` shares the
+          tagged commit instead of a copy of it. Skipping it leaves develop's version files and
+          changelog a release behind, which is the drift that produced the stale `scheduler 0.0.0`
+          entry in `backend/uv.lock`.
+
+          Opened automatically by `.github/workflows/back-merge.yml`. It carries `chore` commits
+          only, so merging it cannot trigger another release.
+          EOF
+          )
+
+          gh pr create \
+            --base develop \
+            --head main \
+            --title "chore(repo): sync develop with the release on main" \
+            --body "$body"
