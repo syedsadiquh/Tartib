@@ -46,6 +46,8 @@ picture. Each package names the files to touch, the steps, and how to check it i
    surprising under the package's "Notes" bullet in the same roadmap line.
 7. If the plan is wrong or ambiguous: **do not improvise.** Add a `PROPOSED` entry to
    `docs/decisions.md`, choose the most conservative option, and say so in the notes.
+8. Land it through the tracker (below): PR into `develop`, body `Closes #N` or `Part of #N`,
+   and move the board item `Todo` → `In Progress` → `Done`.
 
 ### Package template (every package in these plans follows it)
 
@@ -58,6 +60,29 @@ picture. Each package names the files to touch, the steps, and how to check it i
 **Tests:** what to write; file paths
 **Done when:** checklist the reviewer will verify
 ```
+
+---
+
+## Issues, PRs and the tracker
+
+The GitHub side is the tracker: one issue per work package, a project item per issue, one
+milestone per M-phase. Nothing else tracks "what is left" — the roadmap file mirrors it, it does
+not compete with it.
+
+| Thing | Rule |
+|---|---|
+| Issue | One per work package, titled `ID Short name` (e.g. `EN-05 Prayers & qada`), milestone `Mn — …`, labels `area:*` **and** `size:*`, on the board (`Status: Todo`). |
+| Board item | One per issue. `Status` is `Todo` → `In Progress` (branch started) → `Done` (PR merged). Never add a PR as its own item: it appears under the issue's **Linked pull requests**. |
+| PR title | Conventional Commits, scope = area, never the package ID (`feat(engine): …`). |
+| PR labels | One `area:*` (the workflow copies it from the title scope), plus `needs-decision` / `blocked` when they apply. Size labels stay on the issue. |
+| PR body | `Closes #N` when the PR completes the package, `Part of #N` when it is one slice of a bigger one. This is the link the board reads. |
+| Milestone | Same as the linked issue — copied automatically. |
+| Exemption | Repo chores with no package (deps, release plumbing, CI housekeeping) carry the `no-issue` label instead of a link. |
+
+`.github/workflows/tracker.yml` enforces this on every non-draft PR into `develop`: it derives the
+area label from the title scope, copies the milestone from the linked issue, and fails the PR with
+*"No work package linked"* when the body names no issue and the `no-issue` label is absent. A
+title without a scope gets no area label — add it by hand.
 
 ---
 
