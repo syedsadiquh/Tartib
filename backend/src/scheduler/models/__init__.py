@@ -15,7 +15,10 @@ from .base import (
 )
 from .calendar import Calendar, ExternalEvent
 from .google import GoogleAccount, OAuthState
+from .habit import Habit, HabitOccurrence
+from .prayer import PrayerInstance
 from .settings import AppSetting, VocabItem
+from .task import ImportBatch, Subtask, Task, TaskDependency
 
 __all__ = [
     "AgentProposal",
@@ -29,9 +32,16 @@ __all__ = [
     "CreatedAtMixin",
     "ExternalEvent",
     "GoogleAccount",
+    "Habit",
+    "HabitOccurrence",
+    "ImportBatch",
     "MagicLink",
     "OAuthState",
     "PasskeyCredential",
+    "PrayerInstance",
+    "Subtask",
+    "Task",
+    "TaskDependency",
     "TimestampMixin",
     "UpdatedAtMixin",
     "UserAccount",
