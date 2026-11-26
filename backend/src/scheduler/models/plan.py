@@ -21,11 +21,11 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, uuid_pk
+from .base import Base, UserScopedMixin, uuid_pk
 
 
-class PlanRun(Base):
-    """One engine run. At most one ``running`` and one ``proposed`` row at a time."""
+class PlanRun(UserScopedMixin, Base):
+    """One engine run. At most one ``running`` and one ``proposed`` row per user."""
 
     __tablename__ = "plan_run"
     __table_args__ = (
@@ -40,13 +40,13 @@ class PlanRun(Base):
         ),
         Index(
             "plan_run_single_proposed",
-            text("(true)"),
+            "user_id",
             unique=True,
             postgresql_where=text("status = 'proposed'"),
         ),
         Index(
             "plan_run_single_running",
-            text("(true)"),
+            "user_id",
             unique=True,
             postgresql_where=text("status = 'running'"),
         ),
@@ -81,7 +81,7 @@ class PlanRun(Base):
     )
 
 
-class CalendarOrphan(Base):
+class CalendarOrphan(UserScopedMixin, Base):
     """An app-owned Google event with no placement; removed only by a reviewed delete."""
 
     __tablename__ = "calendar_orphan"
@@ -98,7 +98,7 @@ class CalendarOrphan(Base):
     )
 
 
-class SuppressedChange(Base):
+class SuppressedChange(UserScopedMixin, Base):
     """A change the user declined; blocks the same deterministic change for 24 h."""
 
     __tablename__ = "suppressed_change"
@@ -116,6 +116,10 @@ class DayOverride(Base):
 
     __tablename__ = "day_override"
 
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="CASCADE"),
+        primary_key=True,
+    )
     date: Mapped[date] = mapped_column(Date, primary_key=True)
     earliest_block: Mapped[time | None] = mapped_column(Time)
     latest_block_end: Mapped[time | None] = mapped_column(Time)

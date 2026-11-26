@@ -16,12 +16,12 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, UpdatedAtMixin, uuid_pk
+from .base import Base, UpdatedAtMixin, UserScopedMixin, uuid_pk
 
 PRAYER_NAMES = ("fajr", "dhuhr", "asr", "maghrib", "isha")
 
 
-class PrayerInstance(UpdatedAtMixin, Base):
+class PrayerInstance(UserScopedMixin, UpdatedAtMixin, Base):
     """One row per prayer per local day; the block lives in ``placement``."""
 
     __tablename__ = "prayer_instance"

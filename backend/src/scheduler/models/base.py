@@ -17,7 +17,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, MetaData, func, text
+from sqlalchemy import DateTime, ForeignKey, MetaData, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.types import Text
@@ -67,6 +67,26 @@ class UpdatedAtMixin:
 
 class TimestampMixin(CreatedAtMixin, UpdatedAtMixin):
     """Tables that carry both ``created_at`` and ``updated_at``."""
+
+
+# The seeded owner. DB-02 inserts ``user_account`` with exactly this id; every write
+# names it explicitly (there is no server default), so adding users later is an
+# insert plus explicit ``user_id`` values, never a column backfill (D-42).
+OWNER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
+
+
+class UserScopedMixin:
+    """``user_id`` — the tenant key on every table that belongs to a user (D-42).
+
+    Deliberately has **no server default**: an insert that forgets the tenant fails
+    loudly during development instead of quietly landing in the owner's data. DB-02
+    seeds one owner row; every write from then on names the user explicitly.
+    """
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="CASCADE"),
+        nullable=False,
+    )
 
 
 class AttributionMixin:

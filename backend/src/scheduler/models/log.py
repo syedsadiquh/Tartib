@@ -19,10 +19,10 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base
+from .base import Base, UserScopedMixin
 
 
-class EngineLog(Base):
+class EngineLog(UserScopedMixin, Base):
     """RPL-6/G4: one row per engine decision, shown in the Log screen."""
 
     __tablename__ = "engine_log"
@@ -57,7 +57,7 @@ class EngineLog(Base):
     undo_token: Mapped[str | None] = mapped_column(Text)
 
 
-class Activity(Base):
+class Activity(UserScopedMixin, Base):
     """Per-entity history shown on the task detail screen (AGT-7)."""
 
     __tablename__ = "activity"
@@ -80,7 +80,7 @@ class Activity(Base):
     )
 
 
-class AuditEntry(Base):
+class AuditEntry(UserScopedMixin, Base):
     """SET-14: settings and security changes with before/after snapshots."""
 
     __tablename__ = "audit_entry"

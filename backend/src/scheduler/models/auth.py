@@ -9,7 +9,7 @@ from sqlalchemy import BigInteger, DateTime, LargeBinary, Text, func, text
 from sqlalchemy.dialects.postgresql import ARRAY, INET
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, CreatedAtMixin, uuid_pk
+from .base import Base, CreatedAtMixin, UserScopedMixin, uuid_pk
 
 
 class UserAccount(CreatedAtMixin, Base):
@@ -22,7 +22,7 @@ class UserAccount(CreatedAtMixin, Base):
     display_name: Mapped[str] = mapped_column(Text, server_default=text("'Me'"), nullable=False)
 
 
-class PasskeyCredential(CreatedAtMixin, Base):
+class PasskeyCredential(UserScopedMixin, CreatedAtMixin, Base):
     """A WebAuthn credential. ``credential_id``/``public_key`` are raw bytes."""
 
     __tablename__ = "passkey_credential"
@@ -38,7 +38,7 @@ class PasskeyCredential(CreatedAtMixin, Base):
     last_used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class AuthSession(CreatedAtMixin, Base):
+class AuthSession(UserScopedMixin, CreatedAtMixin, Base):
     """Sliding 30-day session; only the HMAC of the cookie token is stored."""
 
     __tablename__ = "auth_session"
@@ -54,7 +54,7 @@ class AuthSession(CreatedAtMixin, Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
-class MagicLink(CreatedAtMixin, Base):
+class MagicLink(UserScopedMixin, CreatedAtMixin, Base):
     """Passwordless login link; valid for 15 minutes and single use."""
 
     __tablename__ = "magic_link"

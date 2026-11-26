@@ -38,7 +38,7 @@ def test_settings_tables_are_registered() -> None:
 
 def test_app_setting_is_versioned_and_has_no_created_at() -> None:
     table = Base.metadata.tables["app_setting"]
-    assert [c.name for c in table.primary_key.columns] == ["section"]
+    assert [c.name for c in table.primary_key.columns] == ["user_id", "section"]
     assert isinstance(table.c.data.type, JSONB)
     assert _default_text(table.c.version) == "1"
     assert "created_at" not in table.c
@@ -61,7 +61,7 @@ def test_vocab_item_unique_kind_key() -> None:
     table = Base.metadata.tables["vocab_item"]
     unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
     assert len(unique) == 1
-    assert {c.name for c in unique[0].columns} == {"kind", "key"}
+    assert {c.name for c in unique[0].columns} == {"user_id", "kind", "key"}
 
 
 IDENTITY_TABLES = {
@@ -217,7 +217,7 @@ def test_data_version_is_a_single_row() -> None:
 def test_notification_dedupe_key_is_unique() -> None:
     table = Base.metadata.tables["notification_log"]
     unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
-    assert {c.name for c in unique[0].columns} == {"dedupe_key"}
+    assert {c.name for c in unique[0].columns} == {"user_id", "dedupe_key"}
 
 
 def test_engine_log_indexes_are_registered() -> None:

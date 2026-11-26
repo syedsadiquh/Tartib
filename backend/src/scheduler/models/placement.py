@@ -24,10 +24,10 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import AttributionMixin, Base, TimestampMixin, uuid_pk
+from .base import AttributionMixin, Base, TimestampMixin, UserScopedMixin, uuid_pk
 
 
-class Placement(TimestampMixin, AttributionMixin, Base):
+class Placement(UserScopedMixin, TimestampMixin, AttributionMixin, Base):
     """A task chunk, habit occurrence, prayer or qada block on a calendar."""
 
     __tablename__ = "placement"

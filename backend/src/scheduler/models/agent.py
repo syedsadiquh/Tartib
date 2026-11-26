@@ -21,10 +21,10 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, CreatedAtMixin, uuid_pk
+from .base import Base, CreatedAtMixin, UserScopedMixin, uuid_pk
 
 
-class AgentToken(CreatedAtMixin, Base):
+class AgentToken(UserScopedMixin, CreatedAtMixin, Base):
     """``actor`` for this token is ``'agent:' || name``; only the hash is stored."""
 
     __tablename__ = "agent_token"
@@ -66,7 +66,7 @@ class AgentRequestLog(Base):
     rows: Mapped[int] = mapped_column(Integer, server_default=text("1"), nullable=False)
 
 
-class AgentProposal(CreatedAtMixin, Base):
+class AgentProposal(UserScopedMixin, CreatedAtMixin, Base):
     """AGT-4: an agent action held for the owner's approval, replayable as-is."""
 
     __tablename__ = "agent_proposal"

@@ -7,11 +7,13 @@ engine and the API import models through here too, never through a single module
 from .agent import AgentProposal, AgentRequestLog, AgentToken
 from .auth import AuthSession, MagicLink, PasskeyCredential, UserAccount
 from .base import (
+    OWNER_ID,
     AttributionMixin,
     Base,
     CreatedAtMixin,
     TimestampMixin,
     UpdatedAtMixin,
+    UserScopedMixin,
 )
 from .calendar import Calendar, ExternalEvent
 from .google import GoogleAccount, OAuthState
@@ -38,6 +40,7 @@ from .settings import AppSetting, VocabItem
 from .task import ImportBatch, Subtask, Task, TaskDependency
 
 __all__ = [
+    "OWNER_ID",
     "Activity",
     "AgentProposal",
     "AgentRequestLog",
@@ -82,5 +85,6 @@ __all__ = [
     "UndoAction",
     "UpdatedAtMixin",
     "UserAccount",
+    "UserScopedMixin",
     "VocabItem",
 ]

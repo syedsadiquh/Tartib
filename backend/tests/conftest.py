@@ -18,7 +18,7 @@ from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.orm import Session
 
 from scheduler.config import get_env
-from scheduler.models import Base
+from scheduler.models import OWNER_ID, Base
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 
@@ -43,8 +43,20 @@ def db_engine() -> Iterator[Engine]:
 
 @pytest.fixture()
 def db_session(db_engine: Engine) -> Iterator[Session]:
-    """Session bound to the migrated test database; tables are emptied afterwards."""
+    """Session bound to the migrated test database; tables are emptied afterwards.
+
+    The owner row is seeded first: every ``user_id`` column defaults to it (D-42),
+    so without the row the foreign key would reject the insert.
+    """
     session = Session(db_engine)
+    session.execute(
+        text(
+            "INSERT INTO user_account (id, email) "
+            "VALUES (:id, 'owner@example.test') ON CONFLICT DO NOTHING"
+        ),
+        {"id": OWNER_ID},
+    )
+    session.commit()
     try:
         yield session
     finally:
