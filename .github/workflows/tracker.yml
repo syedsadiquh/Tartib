@@ -1,20 +1,27 @@
 name: Tracker
 
 # Keeps the GitHub tracker consistent without anyone having to remember it:
-# the area label comes from the PR title's scope, the milestone comes from the
-# linked work-package issue, and a PR that links nothing fails unless it is a
-# repo chore carrying the `no-issue` label. See docs/plans/README.md.
+# the area label comes from the PR title's scope, a PR that links nothing fails
+# unless it is a repo chore carrying the `no-issue` label, and a PR merged into
+# `develop` closes the work-package issue it claims with `Closes #N` (GitHub
+# itself only auto-closes on merges into the default branch, `main`).
+#
+# Milestones stay on issues only. A PR that inherits its issue's milestone makes
+# the milestone's progress bar count merged PRs as finished packages, so this
+# workflow deliberately does not copy it.
+#
+# See docs/plans/README.md.
 
 on:
   pull_request:
     # `labeled` so adding `no-issue` after a failed run clears it without a
     # manual re-run; without it the escape hatch only works if the label is set
-    # before the first run.
-    types: [opened, edited, reopened, synchronize, ready_for_review, labeled]
+    # before the first run. `closed` drives the close-on-merge job.
+    types: [opened, edited, reopened, synchronize, ready_for_review, labeled, closed]
 
 permissions:
   contents: read
-  issues: read
+  issues: write
   pull-requests: write
 
 concurrency:
@@ -25,19 +32,19 @@ jobs:
   label-and-link:
     name: label-and-link
     if: >-
+      github.event.action != 'closed' &&
       github.event.pull_request.base.ref == 'develop' &&
       github.event.pull_request.draft == false &&
       github.event.pull_request.user.login != 'release-please[bot]'
     runs-on: ubuntu-latest
     steps:
-      - name: Sync the area label and the milestone
+      - name: Sync the area label
         env:
           GH_TOKEN: ${{ github.token }}
           # gh infers the repo from the working directory's git remote. This job
           # never checks out, so without GH_REPO every `gh pr edit` dies with
           # "fatal: not a git repository".
           GH_REPO: ${{ github.repository }}
-          REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
           TITLE: ${{ github.event.pull_request.title }}
           BODY: ${{ github.event.pull_request.body }}
@@ -72,11 +79,57 @@ jobs:
             exit 1
           fi
 
-          # 4. inherit the package's milestone so the release view stays complete
-          milestone=$(gh api "repos/$REPO/issues/$issue" --jq '.milestone.number // empty')
-          if [ -n "$milestone" ]; then
-            gh api -X PATCH "repos/$REPO/issues/$PR" -F milestone="$milestone" >/dev/null
-            echo "milestone inherited from #$issue"
-          else
-            echo "::notice::#$issue has no milestone"
+          echo "::notice::linked to #$issue"
+
+  close-packages:
+    name: close-packages
+    # Only a completed PR into `develop` closes its package. `Part of #N` never
+    # closes: a slice is not the package. A PR into `main` is left to GitHub's
+    # own default-branch auto-close.
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.base.ref == 'develop'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close the work-package issues this PR completed
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          set -euo pipefail
+
+          # Only completing keywords close. `Part of #N`, `Refs #N` and plain
+          # `#N` mentions stay open.
+          issues=$(printf '%s' "$BODY" \
+            | grep -oiE '(closes|fixes|resolves) #[0-9]+' \
+            | grep -oE '[0-9]+' | sort -u || true)
+
+          if [ -z "$issues" ]; then
+            echo "::notice::no completing reference in #$PR, nothing to close"
+            exit 0
           fi
+
+          for n in $issues; do
+            # "open issue" / "closed issue" / "open pr" / "closed pr" / "missing"
+            kind=$(gh api "repos/$GH_REPO/issues/$n" \
+              --jq '"\(.state) \(if .pull_request then "pr" else "issue" end)"' 2>/dev/null \
+              || echo "missing")
+            case "$kind" in
+              "open issue")
+                gh issue close "$n" --reason completed >/dev/null
+                echo "closed #$n (completed by #$PR)"
+                ;;
+              "closed issue")
+                echo "::notice::#$n is already closed"
+                ;;
+              "open pr"|"closed pr")
+                echo "::warning::#$n is a pull request, not an issue — skipping"
+                ;;
+              *)
+                echo "::warning::#$n could not be read, skipping"
+                ;;
+            esac
+          done

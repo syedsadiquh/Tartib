@@ -46,8 +46,9 @@ picture. Each package names the files to touch, the steps, and how to check it i
    surprising under the package's "Notes" bullet in the same roadmap line.
 7. If the plan is wrong or ambiguous: **do not improvise.** Add a `PROPOSED` entry to
    `docs/decisions.md`, choose the most conservative option, and say so in the notes.
-8. Land it through the tracker (below): PR into `develop`, body `Closes #N` or `Part of #N`,
-   and move the board item `Todo` → `In Progress` → `Done`.
+8. Land it through the tracker (below): PR into `develop`, body `Closes #N` or `Part of #N`.
+   Move the board item `Todo` → `In Progress` when the branch starts; the merge closes the
+   issue and the "Item closed" workflow moves it to `Done` — never set `Done` by hand.
 
 ### Package template (every package in these plans follows it)
 
@@ -72,17 +73,25 @@ not compete with it.
 | Thing | Rule |
 |---|---|
 | Issue | One per work package, titled `ID Short name` (e.g. `EN-05 Prayers & qada`), milestone `Mn — …`, labels `area:*` **and** `size:*`, on the board (`Status: Todo`). |
-| Board item | One per issue. `Status` is `Todo` → `In Progress` (branch started) → `Done` (PR merged). Never add a PR as its own item: it appears under the issue's **Linked pull requests**. |
+| Board item | One per issue. `Status` is `Todo` → `In Progress` (branch started) → `Done` (issue closed). The project's "Item closed" workflow does the last step; never set it by hand. Never add a PR as its own item: it appears under the issue's **Linked pull requests**. |
 | PR title | Conventional Commits, scope = area, never the package ID (`feat(engine): …`). |
-| PR labels | One `area:*` (the workflow copies it from the title scope), plus `needs-decision` / `blocked` when they apply. Size labels stay on the issue. |
-| PR body | `Closes #N` when the PR completes the package, `Part of #N` when it is one slice of a bigger one. This is the link the board reads. |
-| Milestone | Same as the linked issue — copied automatically. |
+| PR labels | One `area:*` (the workflow derives it from the title scope), plus `needs-decision` / `blocked` when they apply. Size labels stay on the issue. |
+| PR body | `Closes #N` when the PR completes the package, `Part of #N` when it is one slice of a bigger one. Only `Closes`/`Fixes`/`Resolves` close the issue. |
+| Milestone | Issues only. A PR never carries one: GitHub's milestone progress bar counts every closed item in the milestone, so a PR with the milestone makes merged PRs look like finished packages. |
 | Exemption | Repo chores with no package (deps, release plumbing, CI housekeeping) carry the `no-issue` label instead of a link. |
 
 `.github/workflows/tracker.yml` enforces this on every non-draft PR into `develop`: it derives the
-area label from the title scope, copies the milestone from the linked issue, and fails the PR with
-*"No work package linked"* when the body names no issue and the `no-issue` label is absent. A
-title without a scope gets no area label — add it by hand.
+area label from the title scope and fails the PR with *"No work package linked"* when the body
+names no issue and the `no-issue` label is absent. A title without a scope gets no area label —
+add it by hand.
+
+**Closing.** GitHub only auto-closes an issue when the PR merges into the repository's default
+branch, and this repo's default branch is `main`, not `develop`. So the workflow closes the issue
+itself: on a merged PR into `develop`, every `Closes #N` / `Fixes #N` / `Resolves #N` in the body
+is closed with reason *completed*; `Part of #N` and plain mentions stay open. The "Item closed"
+project workflow then moves the board item to `Done`. A merge into `main` is left to GitHub's own
+auto-close. Do not use a milestone's progress bar as a progress metric while PRs are open — count
+the roadmap's checkboxes or the board's `Done` column.
 
 ---
 
