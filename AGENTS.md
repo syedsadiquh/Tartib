@@ -34,6 +34,13 @@ means a missed prayer or a silently dropped task. Be careful, be literal, and te
 10. **Secrets:** never log or commit tokens, keys, `.env`. Use `services/secrets.py`.
 11. **Generated files:** `web/src/api/schema.d.ts` is generated (`make gen-api`); never hand-edit.
 12. **Out of scope** (requirements §3): meetings/booking, multi-user, AI prioritisation, native apps.
+13. **The tracker is the only source of truth for "what is left".** One issue per work package,
+    on the project board, with its milestone and `area:*` / `size:*` labels. Every PR names the
+    package in its body — `Closes #N` when it completes one, `Part of #N` when it is a slice —
+    which is what links it to the board. `.github/workflows/tracker.yml` copies the PR's area
+    label from its title scope and its milestone from the issue, and fails a PR that links
+    nothing unless it carries `no-issue` (repo chores only). Never add a PR as its own board
+    item; the issue's "Linked pull requests" field is where PRs belong.
 
 ## Commands
 ```
@@ -58,3 +65,8 @@ make test-e2e      # Playwright against the compose stack
   changelog are produced by release-please; never edit version numbers by hand
   (`docs/plans/12-versioning.md`).
 - No AI attribution lines (`Co-Authored-By`, "Generated with …") in commits or PRs.
+- Open the PR against `develop` with the template filled in: the title carries the area scope,
+  the body carries `Closes #N` (or `Part of #N` for one slice of a larger package), and the
+  tracker workflow then applies the `area:*` label and the issue's milestone. Move the issue to
+  **In Progress** when the branch starts and to **Done** when the PR merges.
+

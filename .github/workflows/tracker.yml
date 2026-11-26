@@ -1,0 +1,75 @@
+name: Tracker
+
+# Keeps the GitHub tracker consistent without anyone having to remember it:
+# the area label comes from the PR title's scope, the milestone comes from the
+# linked work-package issue, and a PR that links nothing fails unless it is a
+# repo chore carrying the `no-issue` label. See docs/plans/README.md.
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize, ready_for_review]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: write
+
+concurrency:
+  group: tracker-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label-and-link:
+    name: label-and-link
+    if: >-
+      github.event.pull_request.base.ref == 'develop' &&
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.user.login != 'release-please[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync the area label and the milestone
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          TITLE: ${{ github.event.pull_request.title }}
+          BODY: ${{ github.event.pull_request.body }}
+          LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          set -euo pipefail
+
+          # 1. area label from the Conventional Commit scope in the title
+          scope=$(printf '%s' "$TITLE" | sed -nE 's/^[a-z]+\(([a-z]+)\)!?: .*/\1/p')
+          case "$scope" in
+            api|web|worker|engine|db|deploy|bot|integrations|repo) area="area:$scope" ;;
+            ci|docs|plans|release|deps|test) area="area:repo" ;;
+            *) area="" ;;
+          esac
+          if [ -n "$area" ]; then
+            case ",$LABELS," in
+              *",$area,"*) ;;
+              *) gh pr edit "$PR" --add-label "$area" >/dev/null
+                 echo "labelled $area" ;;
+            esac
+          fi
+
+          # 2. the first issue this PR claims, in the body
+          issue=$(printf '%s' "$BODY" | grep -oiE '(closes|fixes|resolves|part of|refs?) #[0-9]+' | grep -oE '[0-9]+' | head -1 || true)
+
+          # 3. no linked issue is only allowed for repo chores, and only on purpose
+          if [ -z "$issue" ]; then
+            case ",$LABELS," in
+              *",no-issue,"*) echo "::notice::no issue linked, the no-issue label is set" ; exit 0 ;;
+            esac
+            echo "::error title=No work package linked::Add 'Closes #N' (completes a package) or 'Part of #N' (one slice of it) to the PR body, or the 'no-issue' label for a repo chore." >&2
+            exit 1
+          fi
+
+          # 4. inherit the package's milestone so the release view stays complete
+          milestone=$(gh api "repos/$REPO/issues/$issue" --jq '.milestone.number // empty')
+          if [ -n "$milestone" ]; then
+            gh api -X PATCH "repos/$REPO/issues/$PR" -F milestone="$milestone" >/dev/null
+            echo "milestone inherited from #$issue"
+          else
+            echo "::notice::#$issue has no milestone"
+          fi
