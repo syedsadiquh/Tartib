@@ -16,33 +16,70 @@ from .base import (
 from .calendar import Calendar, ExternalEvent
 from .google import GoogleAccount, OAuthState
 from .habit import Habit, HabitOccurrence
+from .infra import (
+    BackupRun,
+    CalendarWatch,
+    DataVersion,
+    Heartbeat,
+    IdempotencyKey,
+    Job,
+    NotificationLog,
+    NotionMirrorState,
+    PushSubscription,
+    ScheduledRun,
+    Secret,
+    UndoAction,
+)
+from .log import Activity, AuditEntry, EngineLog
+from .placement import Placement
+from .plan import CalendarOrphan, DayOverride, PlanRun, SuppressedChange
 from .prayer import PrayerInstance
 from .settings import AppSetting, VocabItem
 from .task import ImportBatch, Subtask, Task, TaskDependency
 
 __all__ = [
+    "Activity",
     "AgentProposal",
     "AgentRequestLog",
     "AgentToken",
     "AppSetting",
     "AttributionMixin",
+    "AuditEntry",
     "AuthSession",
+    "BackupRun",
     "Base",
     "Calendar",
+    "CalendarOrphan",
+    "CalendarWatch",
     "CreatedAtMixin",
+    "DataVersion",
+    "DayOverride",
+    "EngineLog",
     "ExternalEvent",
     "GoogleAccount",
     "Habit",
     "HabitOccurrence",
+    "Heartbeat",
+    "IdempotencyKey",
     "ImportBatch",
+    "Job",
     "MagicLink",
+    "NotificationLog",
+    "NotionMirrorState",
     "OAuthState",
     "PasskeyCredential",
+    "Placement",
+    "PlanRun",
     "PrayerInstance",
+    "PushSubscription",
+    "ScheduledRun",
+    "Secret",
     "Subtask",
+    "SuppressedChange",
     "Task",
     "TaskDependency",
     "TimestampMixin",
+    "UndoAction",
     "UpdatedAtMixin",
     "UserAccount",
     "VocabItem",

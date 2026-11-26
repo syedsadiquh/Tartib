@@ -152,3 +152,73 @@ def test_task_title_and_chunk_bounds() -> None:
 
 def test_task_dependency_cannot_point_at_itself() -> None:
     assert "task_id <> depends_on_task_id" in _checks("task_dependency")
+
+
+PLANNING_TABLES = {
+    "activity",
+    "audit_entry",
+    "backup_run",
+    "calendar_orphan",
+    "calendar_watch",
+    "data_version",
+    "day_override",
+    "engine_log",
+    "heartbeat",
+    "idempotency_key",
+    "job",
+    "notification_log",
+    "notion_mirror_state",
+    "placement",
+    "plan_run",
+    "push_subscription",
+    "scheduled_run",
+    "secret",
+    "suppressed_change",
+    "undo_action",
+}
+
+
+def _indexes(table_name: str) -> set[str]:
+    table = Base.metadata.tables[table_name]
+    return {index.name for index in table.indexes}
+
+
+def test_planning_tables_are_registered() -> None:
+    assert set(Base.metadata.tables) >= PLANNING_TABLES
+
+
+def test_placement_requires_an_end_after_the_start() -> None:
+    assert "end_at > start_at" in _checks("placement")
+
+
+def test_user_blocks_must_be_pinned() -> None:
+    assert "owner = 'engine' OR pinned" in _checks("placement")
+
+
+def test_placement_has_a_partial_unique_google_event_index() -> None:
+    table = Base.metadata.tables["placement"]
+    index = next(i for i in table.indexes if i.name == "placement_google_event_id")
+    assert index.unique
+    assert "google_event_id IS NOT NULL" in str(index.dialect_options["postgresql"]["where"])
+
+
+def test_only_one_proposed_plan_run_index_exists() -> None:
+    table = Base.metadata.tables["plan_run"]
+    proposed = [
+        i for i in table.indexes if "proposed" in str(i.dialect_options["postgresql"]["where"])
+    ]
+    assert proposed and proposed[0].unique
+
+
+def test_data_version_is_a_single_row() -> None:
+    assert "id = 1" in _checks("data_version")
+
+
+def test_notification_dedupe_key_is_unique() -> None:
+    table = Base.metadata.tables["notification_log"]
+    unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
+    assert {c.name for c in unique[0].columns} == {"dedupe_key"}
+
+
+def test_engine_log_indexes_are_registered() -> None:
+    assert {"ix_engine_log_ts", "ix_engine_log_subject"} <= _indexes("engine_log")
