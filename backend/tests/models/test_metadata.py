@@ -1,0 +1,224 @@
+"""The mapping registers the right tables and columns (DB-01, slice by slice).
+
+These are metadata-only assertions: they run without a database, so they stay green
+while the migration does not exist yet. The Postgres-level guarantees (CHECKs, the
+exclusion constraint, partial indexes) are proved in ``tests/services/test_schema.py``
+against the real migration.
+"""
+
+from __future__ import annotations
+
+import uuid
+
+from sqlalchemy import CheckConstraint, DateTime, Integer, Text, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
+
+from scheduler.models import Base
+
+
+def _default_text(column: object) -> str:
+    """The SQL text of a column's server default, or ``""`` when it has none."""
+    default = getattr(column, "server_default", None)
+    arg = getattr(default, "arg", None)
+    return str(getattr(arg, "text", arg))
+
+
+def test_metadata_uses_the_shared_naming_convention() -> None:
+    convention = Base.metadata.naming_convention
+    assert convention.get("pk") == "pk_%(table_name)s"
+    assert convention.get("ck") == "ck_%(table_name)s_%(constraint_name)s"
+    assert convention.get("fk") == "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s"
+    assert convention.get("ix") == "ix_%(table_name)s_%(column_0_N_name)s"
+    assert convention.get("uq") == "uq_%(table_name)s_%(column_0_N_name)s"
+
+
+def test_settings_tables_are_registered() -> None:
+    assert {"app_setting", "vocab_item"} <= set(Base.metadata.tables)
+
+
+def test_app_setting_is_versioned_and_has_no_created_at() -> None:
+    table = Base.metadata.tables["app_setting"]
+    assert [c.name for c in table.primary_key.columns] == ["user_id", "section"]
+    assert isinstance(table.c.data.type, JSONB)
+    assert _default_text(table.c.version) == "1"
+    assert "created_at" not in table.c
+    assert "updated_at" in table.c
+
+
+def test_vocab_item_has_uuid_pk_and_both_timestamps() -> None:
+    table = Base.metadata.tables["vocab_item"]
+    assert table.c.id.type.python_type is uuid.UUID
+    assert _default_text(table.c.id) == "uuidv7()"
+    assert isinstance(table.c.created_at.type, DateTime)
+    assert isinstance(table.c.updated_at.type, DateTime)
+    assert table.c.created_at.type.timezone is True
+    assert table.c.updated_at.type.timezone is True
+    assert isinstance(table.c.sort.type, Integer)
+    assert isinstance(table.c.label.type, Text)
+
+
+def test_vocab_item_unique_kind_key() -> None:
+    table = Base.metadata.tables["vocab_item"]
+    unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
+    assert len(unique) == 1
+    assert {c.name for c in unique[0].columns} == {"user_id", "kind", "key"}
+
+
+IDENTITY_TABLES = {
+    "agent_proposal",
+    "agent_request_log",
+    "agent_token",
+    "auth_session",
+    "calendar",
+    "external_event",
+    "google_account",
+    "magic_link",
+    "oauth_state",
+    "passkey_credential",
+    "user_account",
+}
+
+
+def test_identity_tables_are_registered() -> None:
+    assert set(Base.metadata.tables) >= IDENTITY_TABLES
+
+
+def test_calendar_is_unique_per_google_id() -> None:
+    table = Base.metadata.tables["calendar"]
+    unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
+    assert unique and {"google_calendar_id"} in [{c.name for c in u.columns} for u in unique]
+
+
+def test_agent_token_auto_approve_must_be_a_subset_of_scopes() -> None:
+    table = Base.metadata.tables["agent_token"]
+    checks = [str(c.sqltext) for c in table.constraints if isinstance(c, CheckConstraint)]
+    assert "auto_approve <@ scopes" in checks
+
+
+def test_external_event_is_unique_per_calendar_and_event() -> None:
+    table = Base.metadata.tables["external_event"]
+    unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
+    assert {c.name for c in unique[0].columns} == {"calendar_id", "google_event_id"}
+
+
+def test_agent_token_only_references_known_statuses() -> None:
+    table = Base.metadata.tables["agent_token"]
+    checks = [str(c.sqltext) for c in table.constraints if isinstance(c, CheckConstraint)]
+    assert any("'active','revoked'" in check for check in checks)
+
+
+TASK_TABLES = {
+    "habit",
+    "habit_occurrence",
+    "import_batch",
+    "prayer_instance",
+    "subtask",
+    "task",
+    "task_dependency",
+}
+
+
+def _checks(table_name: str) -> list[str]:
+    table = Base.metadata.tables[table_name]
+    return [str(c.sqltext) for c in table.constraints if isinstance(c, CheckConstraint)]
+
+
+def test_task_tables_are_registered() -> None:
+    assert set(Base.metadata.tables) >= TASK_TABLES
+
+
+def test_habit_min_is_bounded_by_ideal() -> None:
+    assert "min_min <= ideal_min" in _checks("habit")
+
+
+def test_habit_occurrence_is_unique_per_day() -> None:
+    table = Base.metadata.tables["habit_occurrence"]
+    unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
+    assert {c.name for c in unique[0].columns} == {"habit_id", "date"}
+
+
+def test_prayer_is_unique_per_day_and_name() -> None:
+    table = Base.metadata.tables["prayer_instance"]
+    unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
+    assert {c.name for c in unique[0].columns} == {"date", "name"}
+    assert "jummah" in " ".join(_checks("prayer_instance"))
+
+
+def test_task_title_and_chunk_bounds() -> None:
+    checks = _checks("task")
+    assert "length(title) BETWEEN 1 AND 300" in checks
+    assert "min_chunk_min >= 5" in checks
+
+
+def test_task_dependency_cannot_point_at_itself() -> None:
+    assert "task_id <> depends_on_task_id" in _checks("task_dependency")
+
+
+PLANNING_TABLES = {
+    "activity",
+    "audit_entry",
+    "backup_run",
+    "calendar_orphan",
+    "calendar_watch",
+    "data_version",
+    "day_override",
+    "engine_log",
+    "heartbeat",
+    "idempotency_key",
+    "job",
+    "notification_log",
+    "notion_mirror_state",
+    "placement",
+    "plan_run",
+    "push_subscription",
+    "scheduled_run",
+    "secret",
+    "suppressed_change",
+    "undo_action",
+}
+
+
+def _indexes(table_name: str) -> set[str]:
+    table = Base.metadata.tables[table_name]
+    return {index.name for index in table.indexes}
+
+
+def test_planning_tables_are_registered() -> None:
+    assert set(Base.metadata.tables) >= PLANNING_TABLES
+
+
+def test_placement_requires_an_end_after_the_start() -> None:
+    assert "end_at > start_at" in _checks("placement")
+
+
+def test_user_blocks_must_be_pinned() -> None:
+    assert "owner = 'engine' OR pinned" in _checks("placement")
+
+
+def test_placement_has_a_partial_unique_google_event_index() -> None:
+    table = Base.metadata.tables["placement"]
+    index = next(i for i in table.indexes if i.name == "placement_google_event_id")
+    assert index.unique
+    assert "google_event_id IS NOT NULL" in str(index.dialect_options["postgresql"]["where"])
+
+
+def test_only_one_proposed_plan_run_index_exists() -> None:
+    table = Base.metadata.tables["plan_run"]
+    proposed = [
+        i for i in table.indexes if "proposed" in str(i.dialect_options["postgresql"]["where"])
+    ]
+    assert proposed and proposed[0].unique
+
+
+def test_data_version_is_a_single_row() -> None:
+    assert "id = 1" in _checks("data_version")
+
+
+def test_notification_dedupe_key_is_unique() -> None:
+    table = Base.metadata.tables["notification_log"]
+    unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
+    assert {c.name for c in unique[0].columns} == {"user_id", "dedupe_key"}
+
+
+def test_engine_log_indexes_are_registered() -> None:
+    assert {"ix_engine_log_ts", "ix_engine_log_subject"} <= _indexes("engine_log")

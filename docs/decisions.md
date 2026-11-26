@@ -610,5 +610,56 @@ exit 0 while installing `scheduler==0.1.1`. Only `uv lock --check` reports the d
    loudly instead of passing silently.
 
 **Naming.** The jsonpath uses `scheduler` because that is the distribution name in
-`pyproject.toml`; `tartib` is release-please's `package-name` for the tag and changelog. The two
+`pyproject.toml`; `tartib` is the package name release-please reads from the manifest. The two
 are deliberately different and the lock follows the distribution name.
+
+## D-41 — Timestamps split into `CreatedAtMixin` and `UpdatedAtMixin` · PROPOSED (DB-01)
+
+02-data-model §1 names one `TimestampMixin` carrying both `created_at` and `updated_at`. The
+tables do not agree with that: `engine_log`, `activity` and `audit_entry` are append-only and
+have no `updated_at`; `app_setting` is the reverse — it has `updated_at` and no `created_at`
+(the seeder creates the row, so the creation instant is not part of the contract).
+
+**Decision.** Two mixins, `CreatedAtMixin` and `UpdatedAtMixin`, plus `TimestampMixin` as the
+combination for tables that carry both. Each table picks the one its DDL in §2 actually lists.
+The alternative — one mixin with a nullable `updated_at` — would have hidden the difference in
+the schema and let a caller forget to set it.
+
+**Consequences.** `TimestampMixin` remains the name the plan uses, so nothing in the plan text
+had to change. `AttributionMixin` stays the same and stays applied only where §2 marks `[attr]`.
+
+## D-42 — Single-user now, tenant key in the schema from day one · PROPOSED (owner, 2026-11-26)
+
+The owner asked for the data layer to keep multi-user and multi-calendar reachable in a later
+phase. Requirements §3 still puts multi-user out of scope, so the goal is not to build it — it is
+to avoid the rewrite that a later multi-user phase would otherwise force.
+
+**What actually blocks a second user today** is not the absence of a `user_id`; it is the
+singleton assumptions: `google_account` has `CHECK (id = 1)`, `app_setting` keys on `section`
+alone, `vocab_item` is unique on `(kind, key)`, `secret` keys on `name`, `day_override` keys on
+`date`, `notification_log` dedupes globally, and `plan_run` allows one proposed run in the whole
+database. Those are the things that turn "add a user" into "migrate every table".
+
+**Decision.** Every table that belongs to a person carries `user_id uuid NOT NULL REFERENCES
+user_account(id)`, and the singleton constraints become per-user. There is deliberately **no
+server default**: an insert that forgets the tenant key fails loudly during development instead of
+quietly landing in the owner's data. DB-02 seeds one `user_account` row (`OWNER_ID`), and every
+write from then on names the user explicitly. Pure children of a user-owned row (`subtask`,
+`habit_occurrence`, `task_dependency`, `external_event`, `agent_request_log`, `calendar_watch`,
+`idempotency_key`, `job`, `scheduled_run`, `heartbeat`, `data_version`) reach the user through
+their parent and do not carry the column.
+
+**Why not nullable.** A nullable tenant key means every query must handle NULL and every future
+join has a "no owner" branch. A NOT NULL column with no default makes the single-user case exact
+and the multi-user case additive: insert the row, name the user, and no query needs a filter it
+does not want yet. The cost is that every fixture and service must pass the id — paid once, at
+development time, where a missing tenant is visible.
+
+**Consequences.**
+- 28 tables gain `user_id`; the seven singleton constraints above become composite or per-user.
+- The migration seeds nothing — `user_account` is DB-02's job — but the test fixtures insert the
+  owner row and pass `user_id=OWNER_ID` explicitly, because the FK rejects a row without it.
+- Multi-calendar was already reachable: `calendar` is one row per Google calendar and has no
+  singleton constraint. Nothing changed for it.
+- The engine stays pure: `user_id` is a column the services pass in, not something the engine
+  reads.
