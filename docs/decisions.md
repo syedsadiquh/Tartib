@@ -663,3 +663,40 @@ development time, where a missing tenant is visible.
   singleton constraint. Nothing changed for it.
 - The engine stays pure: `user_id` is a column the services pass in, not something the engine
   reads.
+
+---
+
+## D-43 — The tracker closes packages on merge to `develop`; PRs carry no milestone · PROPOSED (owner, 2026-11-26)
+
+**Problem.** GitHub only auto-closes an issue when its closing PR merges into the repository's
+**default** branch. This repo's default branch is `main`; integration happens on `develop`. So a PR
+with `Closes #31` merged into `develop` left the issue open, the board item in `Todo`, and the
+roadmap ticked — three sources disagreeing about the same package.
+
+**Second problem.** `tracker.yml` copied the linked issue's milestone onto each PR. GitHub's
+milestone progress bar counts *every* closed item carrying that milestone, PRs included, so M1 —
+Data showed 7/9 ≈ 78 % while neither of its two work packages was done. A metric that counts
+merged PRs as finished packages is worse than no metric.
+
+**Decision.** A merged PR into `develop` closes the work-package issues its body claims with
+`Closes #N` / `Fixes #N` / `Resolves #N`, with reason *completed*. `Part of #N` and plain mentions
+never close — a slice is not the package. The "Item closed" project workflow then moves the board
+item to `Done`, so Status is never set by hand. Merges into `main` are left to GitHub's own
+auto-close. PRs no longer inherit a milestone: milestones live on issues only.
+
+**Why close on merge to `develop` rather than at release.** The roadmap ticks a package when its
+work lands on `develop`, and the board is meant to mirror the roadmap. Closing at release would
+leave finished packages looking open for the whole release cycle, and the promotion PR would have
+to be generated from the release's merged PRs to carry the closing refs — more machinery for a
+worse signal. The cost is that "closed" means "merged to `develop`", not "shipped"; the release
+view is what tells you what shipped.
+
+**Consequences.**
+- `.github/workflows/tracker.yml` gains a `close-packages` job on `pull_request: closed`; the
+  `label-and-link` job skips that event.
+- `Part of #N` no longer produces a GitHub "Linked pull requests" entry — only `Closes #N` does.
+  Slices of a package stay invisible on the board by design; the package's own PR is the one that
+  links.
+- The milestone progress bar is trustworthy again: it counts issues, so it reads "packages done".
+- Do not read a milestone's percentage as project progress while a release is in flight; count the
+  roadmap's checkboxes or the board's `Done` column.
