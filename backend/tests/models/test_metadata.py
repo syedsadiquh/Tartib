@@ -105,3 +105,50 @@ def test_agent_token_only_references_known_statuses() -> None:
     table = Base.metadata.tables["agent_token"]
     checks = [str(c.sqltext) for c in table.constraints if isinstance(c, CheckConstraint)]
     assert any("'active','revoked'" in check for check in checks)
+
+
+TASK_TABLES = {
+    "habit",
+    "habit_occurrence",
+    "import_batch",
+    "prayer_instance",
+    "subtask",
+    "task",
+    "task_dependency",
+}
+
+
+def _checks(table_name: str) -> list[str]:
+    table = Base.metadata.tables[table_name]
+    return [str(c.sqltext) for c in table.constraints if isinstance(c, CheckConstraint)]
+
+
+def test_task_tables_are_registered() -> None:
+    assert set(Base.metadata.tables) >= TASK_TABLES
+
+
+def test_habit_min_is_bounded_by_ideal() -> None:
+    assert "min_min <= ideal_min" in _checks("habit")
+
+
+def test_habit_occurrence_is_unique_per_day() -> None:
+    table = Base.metadata.tables["habit_occurrence"]
+    unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
+    assert {c.name for c in unique[0].columns} == {"habit_id", "date"}
+
+
+def test_prayer_is_unique_per_day_and_name() -> None:
+    table = Base.metadata.tables["prayer_instance"]
+    unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
+    assert {c.name for c in unique[0].columns} == {"date", "name"}
+    assert "jummah" in " ".join(_checks("prayer_instance"))
+
+
+def test_task_title_and_chunk_bounds() -> None:
+    checks = _checks("task")
+    assert "length(title) BETWEEN 1 AND 300" in checks
+    assert "min_chunk_min >= 5" in checks
+
+
+def test_task_dependency_cannot_point_at_itself() -> None:
+    assert "task_id <> depends_on_task_id" in _checks("task_dependency")
