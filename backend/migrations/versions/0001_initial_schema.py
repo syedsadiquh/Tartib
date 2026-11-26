@@ -162,7 +162,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -201,7 +200,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(
@@ -229,7 +227,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column("section", sa.Text(), nullable=False),
@@ -264,7 +261,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -292,7 +288,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(
@@ -333,7 +328,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -368,7 +362,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(
@@ -401,7 +394,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column("date", sa.Date(), nullable=False),
@@ -443,7 +435,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -471,7 +462,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(
@@ -500,7 +490,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(
@@ -532,7 +521,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -560,7 +548,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -588,7 +575,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(
@@ -655,7 +641,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -708,7 +693,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(
@@ -751,7 +735,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -768,7 +751,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column("name", sa.Text(), nullable=False),
@@ -799,7 +781,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -827,7 +808,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(
@@ -868,7 +848,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(
@@ -928,7 +907,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -962,7 +940,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -1004,7 +981,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.CheckConstraint(
@@ -1085,7 +1061,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(
@@ -1154,7 +1129,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(
@@ -1253,7 +1227,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(
@@ -1301,7 +1274,6 @@ def upgrade() -> None:
         sa.Column(
             "user_id",
             sa.UUID(),
-            server_default=sa.text("'00000000-0000-0000-0000-000000000001'::uuid"),
             nullable=False,
         ),
         sa.Column(

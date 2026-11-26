@@ -9,7 +9,7 @@ from sqlalchemy import CheckConstraint, ForeignKey, Integer, Text, UniqueConstra
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import OWNER_ID, Base, TimestampMixin, UpdatedAtMixin, UserScopedMixin, uuid_pk
+from .base import Base, TimestampMixin, UpdatedAtMixin, UserScopedMixin, uuid_pk
 
 
 class AppSetting(UpdatedAtMixin, Base):
@@ -24,7 +24,6 @@ class AppSetting(UpdatedAtMixin, Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user_account.id", ondelete="CASCADE"),
         primary_key=True,
-        server_default=text(f"'{OWNER_ID}'::uuid"),
     )
     section: Mapped[str] = mapped_column(Text, primary_key=True)
     data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)

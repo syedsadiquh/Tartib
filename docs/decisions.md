@@ -640,24 +640,25 @@ alone, `vocab_item` is unique on `(kind, key)`, `secret` keys on `name`, `day_ov
 `date`, `notification_log` dedupes globally, and `plan_run` allows one proposed run in the whole
 database. Those are the things that turn "add a user" into "migrate every table".
 
-**Decision.** Every table that belongs to a person carries `user_id uuid NOT NULL DEFAULT
-'00000000-0000-0000-0000-000000000001' REFERENCES user_account(id)`, and the singleton constraints
-become per-user. The default is a fixed `OWNER_ID`; DB-02 seeds that row. A single-user install
-never writes the column — the server default satisfies the NOT NULL and the foreign key — so no
-service code changes and no query gets a filter it does not need yet. Pure children of a
-user-owned row (`subtask`, `habit_occurrence`, `task_dependency`, `external_event`,
-`agent_request_log`, `calendar_watch`, `idempotency_key`, `job`, `scheduled_run`, `heartbeat`,
-`data_version`) reach the user through their parent and do not carry the column.
+**Decision.** Every table that belongs to a person carries `user_id uuid NOT NULL REFERENCES
+user_account(id)`, and the singleton constraints become per-user. There is deliberately **no
+server default**: an insert that forgets the tenant key fails loudly during development instead of
+quietly landing in the owner's data. DB-02 seeds one `user_account` row (`OWNER_ID`), and every
+write from then on names the user explicitly. Pure children of a user-owned row (`subtask`,
+`habit_occurrence`, `task_dependency`, `external_event`, `agent_request_log`, `calendar_watch`,
+`idempotency_key`, `job`, `scheduled_run`, `heartbeat`, `data_version`) reach the user through
+their parent and do not carry the column.
 
-**Why the default rather than nullable.** A nullable tenant key means every query must handle
-NULL and every future join has a "no owner" branch. A default to the seeded owner makes the
-single-user case exact and the multi-user case additive: insert the row, then set `user_id`
-explicitly on new writes.
+**Why not nullable.** A nullable tenant key means every query must handle NULL and every future
+join has a "no owner" branch. A NOT NULL column with no default makes the single-user case exact
+and the multi-user case additive: insert the row, name the user, and no query needs a filter it
+does not want yet. The cost is that every fixture and service must pass the id — paid once, at
+development time, where a missing tenant is visible.
 
 **Consequences.**
 - 28 tables gain `user_id`; the seven singleton constraints above become composite or per-user.
 - The migration seeds nothing — `user_account` is DB-02's job — but the test fixtures insert the
-  owner row, because the FK rejects a placement without it.
+  owner row and pass `user_id=OWNER_ID` explicitly, because the FK rejects a row without it.
 - Multi-calendar was already reachable: `calendar` is one row per Google calendar and has no
   singleton constraint. Nothing changed for it.
 - The engine stays pure: `user_id` is a column the services pass in, not something the engine

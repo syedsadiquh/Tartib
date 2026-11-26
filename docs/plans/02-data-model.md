@@ -34,12 +34,13 @@ Tartib ships as a single-user app (requirements §3 puts multi-user out of scope
 must not make multi-user a rewrite. Every table that belongs to a person carries:
 
 ```
-user_id  uuid  NOT NULL  DEFAULT '00000000-0000-0000-0000-000000000001'  REFERENCES user_account(id)
+user_id  uuid  NOT NULL  REFERENCES user_account(id)
 ```
 
-`OWNER_ID` is a fixed UUID; DB-02 seeds `user_account` with that id. A single-user install never
-sets the column — the server default satisfies the NOT NULL — and every singleton assumption that
-would block a second person is gone:
+There is deliberately **no server default**: a write that forgets the tenant key fails loudly
+during development instead of quietly landing in the owner's data. `OWNER_ID` is a fixed UUID;
+DB-02 seeds `user_account` with that id and every service passes it explicitly. Every singleton
+assumption that would block a second person is gone:
 
 | Was | Now |
 |---|---|

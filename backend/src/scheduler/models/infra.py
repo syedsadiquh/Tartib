@@ -22,7 +22,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import OWNER_ID, Base, UserScopedMixin, uuid_pk
+from .base import Base, UserScopedMixin, uuid_pk
 
 
 class Job(Base):
@@ -196,7 +196,6 @@ class Secret(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user_account.id", ondelete="CASCADE"),
         primary_key=True,
-        server_default=text(f"'{OWNER_ID}'::uuid"),
     )
     name: Mapped[str] = mapped_column(Text, primary_key=True)
     value_enc: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)

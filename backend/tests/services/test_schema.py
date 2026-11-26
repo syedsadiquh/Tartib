@@ -12,13 +12,14 @@ import pytest
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from scheduler.models import Calendar, Habit, Placement, PlanRun
+from scheduler.models import OWNER_ID, Calendar, Habit, Placement, PlanRun
 
 BASE = datetime(2026, 11, 26, 9, 0, tzinfo=UTC)
 
 
 def _calendar(session: Session) -> Calendar:
     calendar = Calendar(
+        user_id=OWNER_ID,
         google_calendar_id="cal-tasks",
         summary="Tasks & Todos",
         color="#1d76db",
@@ -33,6 +34,7 @@ def _placement(
     session: Session, calendar: Calendar, *, start: datetime, end: datetime, pinned: bool = False
 ) -> Placement:
     return Placement(
+        user_id=OWNER_ID,
         ref_type="task",
         ref_id=calendar.id,  # any uuid; the column is deliberately polymorphic
         kind="task_chunk",
@@ -84,6 +86,7 @@ def test_overlapping_placement_is_allowed_when_one_is_pinned(db_session: Session
 def test_second_proposed_plan_run_is_rejected(db_session: Session) -> None:
     def plan_run(status: str = "proposed") -> PlanRun:
         return PlanRun(
+            user_id=OWNER_ID,
             trigger="manual",
             status=status,
             input_hash="deadbeef",
@@ -101,6 +104,7 @@ def test_second_proposed_plan_run_is_rejected(db_session: Session) -> None:
 def test_habit_min_min_above_ideal_min_is_rejected(db_session: Session) -> None:
     db_session.add(
         Habit(
+            user_id=OWNER_ID,
             name="Gym",
             weekdays=[1, 3, 5],
             ideal_min=60,

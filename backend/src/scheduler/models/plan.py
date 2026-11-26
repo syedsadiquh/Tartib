@@ -21,7 +21,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import OWNER_ID, Base, UserScopedMixin, uuid_pk
+from .base import Base, UserScopedMixin, uuid_pk
 
 
 class PlanRun(UserScopedMixin, Base):
@@ -119,7 +119,6 @@ class DayOverride(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user_account.id", ondelete="CASCADE"),
         primary_key=True,
-        server_default=text(f"'{OWNER_ID}'::uuid"),
     )
     date: Mapped[date] = mapped_column(Date, primary_key=True)
     earliest_block: Mapped[time | None] = mapped_column(Time)
