@@ -17,10 +17,10 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, TimestampMixin, UpdatedAtMixin, uuid_pk
+from .base import Base, TimestampMixin, UpdatedAtMixin, UserScopedMixin, uuid_pk
 
 
-class Calendar(TimestampMixin, Base):
+class Calendar(UserScopedMixin, TimestampMixin, Base):
     """A discovered Google calendar plus the per-calendar routing rules."""
 
     __tablename__ = "calendar"

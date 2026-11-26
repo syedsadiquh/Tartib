@@ -5,11 +5,11 @@ from __future__ import annotations
 import uuid
 from typing import Any
 
-from sqlalchemy import CheckConstraint, Integer, Text, UniqueConstraint, text
+from sqlalchemy import CheckConstraint, ForeignKey, Integer, Text, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, TimestampMixin, UpdatedAtMixin, uuid_pk
+from .base import OWNER_ID, Base, TimestampMixin, UpdatedAtMixin, UserScopedMixin, uuid_pk
 
 
 class AppSetting(UpdatedAtMixin, Base):
@@ -21,19 +21,24 @@ class AppSetting(UpdatedAtMixin, Base):
 
     __tablename__ = "app_setting"
 
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="CASCADE"),
+        primary_key=True,
+        server_default=text(f"'{OWNER_ID}'::uuid"),
+    )
     section: Mapped[str] = mapped_column(Text, primary_key=True)
     data: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     version: Mapped[int] = mapped_column(Integer, server_default=text("1"), nullable=False)
     updated_by: Mapped[str] = mapped_column(Text, nullable=False)
 
 
-class VocabItem(TimestampMixin, Base):
-    """SET-17: user-renamable vocabulary. ``key`` never changes after create."""
+class VocabItem(UserScopedMixin, TimestampMixin, Base):
+    """SET-17: user-renamable vocabulary. ``key`` is unique per kind and user."""
 
     __tablename__ = "vocab_item"
     __table_args__ = (
         CheckConstraint("kind IN ('subject','priority','effort','split_mode')", name="kind"),
-        UniqueConstraint("kind", "key"),
+        UniqueConstraint("user_id", "kind", "key"),
     )
 
     id: Mapped[uuid.UUID] = uuid_pk()

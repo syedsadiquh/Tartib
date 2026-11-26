@@ -22,7 +22,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, uuid_pk
+from .base import OWNER_ID, Base, UserScopedMixin, uuid_pk
 
 
 class Job(Base):
@@ -78,7 +78,7 @@ class ScheduledRun(Base):
     error: Mapped[str | None] = mapped_column(Text)
 
 
-class CalendarWatch(Base):
+class CalendarWatch(UserScopedMixin, Base):
     """D-29/IN-15: an active Google push channel for one calendar."""
 
     __tablename__ = "calendar_watch"
@@ -118,7 +118,7 @@ class Heartbeat(Base):
     beat_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class UndoAction(Base):
+class UndoAction(UserScopedMixin, Base):
     """D-22: a reversible action stored as a service call plus its arguments."""
 
     __tablename__ = "undo_action"
@@ -147,7 +147,7 @@ class IdempotencyKey(Base):
     )
 
 
-class PushSubscription(Base):
+class PushSubscription(UserScopedMixin, Base):
     """A Web Push endpoint; ``failures`` drives pruning after repeated 410s."""
 
     __tablename__ = "push_subscription"
@@ -164,7 +164,7 @@ class PushSubscription(Base):
     failures: Mapped[int] = mapped_column(Integer, server_default=text("0"), nullable=False)
 
 
-class NotificationLog(Base):
+class NotificationLog(UserScopedMixin, Base):
     """OVL-3: one row per notification, keyed so the same reminder never repeats."""
 
     __tablename__ = "notification_log"
@@ -173,7 +173,7 @@ class NotificationLog(Base):
             "type IN ('block_start','prayer','plan_approval','overload','alert','magic_link')",
             name="type",
         ),
-        UniqueConstraint("dedupe_key"),
+        UniqueConstraint("user_id", "dedupe_key"),
     )
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
@@ -193,6 +193,11 @@ class Secret(Base):
 
     __tablename__ = "secret"
 
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="CASCADE"),
+        primary_key=True,
+        server_default=text(f"'{OWNER_ID}'::uuid"),
+    )
     name: Mapped[str] = mapped_column(Text, primary_key=True)
     value_enc: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
     updated_at: Mapped[datetime] = mapped_column(
@@ -200,7 +205,7 @@ class Secret(Base):
     )
 
 
-class NotionMirrorState(Base):
+class NotionMirrorState(UserScopedMixin, Base):
     """Last mirrored page and content hash per entity."""
 
     __tablename__ = "notion_mirror_state"
@@ -212,7 +217,7 @@ class NotionMirrorState(Base):
     synced_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
 
-class BackupRun(Base):
+class BackupRun(UserScopedMixin, Base):
     """One backup/mirror/restore attempt and its result."""
 
     __tablename__ = "backup_run"

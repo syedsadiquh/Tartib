@@ -17,7 +17,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, MetaData, func, text
+from sqlalchemy import DateTime, ForeignKey, MetaData, func, text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.types import Text
@@ -67,6 +67,28 @@ class UpdatedAtMixin:
 
 class TimestampMixin(CreatedAtMixin, UpdatedAtMixin):
     """Tables that carry both ``created_at`` and ``updated_at``."""
+
+
+# The single-user default. DB-02 seeds ``user_account`` with exactly this id, so a
+# fresh install's rows get it from the server default; adding users later is an
+# insert plus explicit ``user_id`` values, never a column backfill (D-42).
+OWNER_ID = uuid.UUID("00000000-0000-0000-0000-000000000001")
+
+
+class UserScopedMixin:
+    """``user_id`` — the tenant key on every table that belongs to a user (D-42).
+
+    Tartib ships as a single-user app, so the column defaults to the seeded owner
+    row instead of being nullable: a fresh install writes rows with no ``user_id``
+    in the INSERT and still satisfies the NOT NULL. Adding a second user later is
+    an insert plus explicit ids — not a column backfill across forty tables.
+    """
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user_account.id", ondelete="CASCADE"),
+        server_default=text(f"'{OWNER_ID}'::uuid"),
+        nullable=False,
+    )
 
 
 class AttributionMixin:

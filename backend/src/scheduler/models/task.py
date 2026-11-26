@@ -21,13 +21,20 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import AttributionMixin, Base, CreatedAtMixin, TimestampMixin, uuid_pk
+from .base import (
+    AttributionMixin,
+    Base,
+    CreatedAtMixin,
+    TimestampMixin,
+    UserScopedMixin,
+    uuid_pk,
+)
 
 TASK_STATES = ("inbox", "scheduled", "in_progress", "partial", "done", "skipped", "backlog")
 TASK_SOURCES = ("manual", "nl", "bulk", "agent", "recurrence")
 
 
-class Task(TimestampMixin, AttributionMixin, Base):
+class Task(UserScopedMixin, TimestampMixin, AttributionMixin, Base):
     """A unit of work. Nullable columns are the capture gates (SET-0/TSK-3)."""
 
     __tablename__ = "task"
@@ -119,7 +126,7 @@ class TaskDependency(Base):
     )
 
 
-class ImportBatch(CreatedAtMixin, Base):
+class ImportBatch(UserScopedMixin, CreatedAtMixin, Base):
     """CAP-3: a paste/import draft, committed or discarded as a whole."""
 
     __tablename__ = "import_batch"

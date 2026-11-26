@@ -28,6 +28,40 @@ Implement as a SQLAlchemy mixin `AttributionMixin` in `models/base.py`.
 
 ---
 
+## 1a. Tenancy (D-42) — single user now, one column away from many
+
+Tartib ships as a single-user app (requirements §3 puts multi-user out of scope), but the schema
+must not make multi-user a rewrite. Every table that belongs to a person carries:
+
+```
+user_id  uuid  NOT NULL  DEFAULT '00000000-0000-0000-0000-000000000001'  REFERENCES user_account(id)
+```
+
+`OWNER_ID` is a fixed UUID; DB-02 seeds `user_account` with that id. A single-user install never
+sets the column — the server default satisfies the NOT NULL — and every singleton assumption that
+would block a second person is gone:
+
+| Was | Now |
+|---|---|
+| `app_setting.section` PK | `(user_id, section)` PK |
+| `vocab_item` unique `(kind, key)` | unique `(user_id, kind, key)` |
+| `google_account` `CHECK (id = 1)` | unique `user_id` (one Google account per person) |
+| `secret.name` PK | `(user_id, name)` PK |
+| `day_override.date` PK | `(user_id, date)` PK |
+| `notification_log` unique `dedupe_key` | unique `(user_id, dedupe_key)` |
+| `plan_run` one proposed / one running | one per `user_id` |
+
+Tables that are pure children of a user-owned row (`subtask`, `habit_occurrence`,
+`task_dependency`, `external_event`, `agent_request_log`, `calendar_watch`, `idempotency_key`,
+`heartbeat`, `data_version`, `job`, `scheduled_run`) reach the user through their parent; they do
+not carry `user_id` and do not need to. Implement as `UserScopedMixin` in `models/base.py`.
+
+Adding a second user later is then an additive migration: insert the row, backfill nothing, relax
+nothing. Queries that matter filter on `user_id` — the service layer starts doing that in the
+phase that enables multi-user.
+
+---
+
 ## 2. Tables
 
 ### 2.1 Settings & vocabularies

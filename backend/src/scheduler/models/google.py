@@ -4,19 +4,27 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, DateTime, Integer, LargeBinary, Text, func
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    Integer,
+    LargeBinary,
+    Text,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import Base, CreatedAtMixin
+from .base import Base, CreatedAtMixin, UserScopedMixin
 
 
-class GoogleAccount(Base):
-    """At most one row, pinned to ``id = 1``. Tokens are Fernet ciphertext."""
+class GoogleAccount(UserScopedMixin, Base):
+    """One row per user. Tokens are Fernet ciphertext."""
 
     __tablename__ = "google_account"
     __table_args__ = (
-        CheckConstraint("id = 1", name="single_row"),
+        UniqueConstraint("user_id"),
         CheckConstraint("status IN ('connected','expired','revoked','error')", name="status"),
     )
 

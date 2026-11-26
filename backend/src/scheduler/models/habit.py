@@ -21,10 +21,10 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
-from .base import AttributionMixin, Base, TimestampMixin, uuid_pk
+from .base import AttributionMixin, Base, TimestampMixin, UserScopedMixin, uuid_pk
 
 
-class Habit(TimestampMixin, AttributionMixin, Base):
+class Habit(UserScopedMixin, TimestampMixin, AttributionMixin, Base):
     """A repeating commitment with a time window and a compression floor."""
 
     __tablename__ = "habit"
