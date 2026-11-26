@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import DateTime, Integer, Text, UniqueConstraint
+from sqlalchemy import CheckConstraint, DateTime, Integer, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 
 from scheduler.models import Base
@@ -62,3 +62,46 @@ def test_vocab_item_unique_kind_key() -> None:
     unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
     assert len(unique) == 1
     assert {c.name for c in unique[0].columns} == {"kind", "key"}
+
+
+IDENTITY_TABLES = {
+    "agent_proposal",
+    "agent_request_log",
+    "agent_token",
+    "auth_session",
+    "calendar",
+    "external_event",
+    "google_account",
+    "magic_link",
+    "oauth_state",
+    "passkey_credential",
+    "user_account",
+}
+
+
+def test_identity_tables_are_registered() -> None:
+    assert set(Base.metadata.tables) >= IDENTITY_TABLES
+
+
+def test_calendar_is_unique_per_google_id() -> None:
+    table = Base.metadata.tables["calendar"]
+    unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
+    assert unique and {"google_calendar_id"} in [{c.name for c in u.columns} for u in unique]
+
+
+def test_agent_token_auto_approve_must_be_a_subset_of_scopes() -> None:
+    table = Base.metadata.tables["agent_token"]
+    checks = [str(c.sqltext) for c in table.constraints if isinstance(c, CheckConstraint)]
+    assert "auto_approve <@ scopes" in checks
+
+
+def test_external_event_is_unique_per_calendar_and_event() -> None:
+    table = Base.metadata.tables["external_event"]
+    unique = [c for c in table.constraints if isinstance(c, UniqueConstraint)]
+    assert {c.name for c in unique[0].columns} == {"calendar_id", "google_event_id"}
+
+
+def test_agent_token_only_references_known_statuses() -> None:
+    table = Base.metadata.tables["agent_token"]
+    checks = [str(c.sqltext) for c in table.constraints if isinstance(c, CheckConstraint)]
+    assert any("'active','revoked'" in check for check in checks)
