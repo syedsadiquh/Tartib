@@ -610,5 +610,20 @@ exit 0 while installing `scheduler==0.1.1`. Only `uv lock --check` reports the d
    loudly instead of passing silently.
 
 **Naming.** The jsonpath uses `scheduler` because that is the distribution name in
-`pyproject.toml`; `tartib` is release-please's `package-name` for the tag and changelog. The two
+`pyproject.toml`; `tartib` is the package name release-please reads from the manifest. The two
 are deliberately different and the lock follows the distribution name.
+
+## D-41 — Timestamps split into `CreatedAtMixin` and `UpdatedAtMixin` · PROPOSED (DB-01)
+
+02-data-model §1 names one `TimestampMixin` carrying both `created_at` and `updated_at`. The
+tables do not agree with that: `engine_log`, `activity` and `audit_entry` are append-only and
+have no `updated_at`; `app_setting` is the reverse — it has `updated_at` and no `created_at`
+(the seeder creates the row, so the creation instant is not part of the contract).
+
+**Decision.** Two mixins, `CreatedAtMixin` and `UpdatedAtMixin`, plus `TimestampMixin` as the
+combination for tables that carry both. Each table picks the one its DDL in §2 actually lists.
+The alternative — one mixin with a nullable `updated_at` — would have hidden the difference in
+the schema and let a caller forget to set it.
+
+**Consequences.** `TimestampMixin` remains the name the plan uses, so nothing in the plan text
+had to change. `AttributionMixin` stays separate and is only applied where §2 marks `[attr]`.
