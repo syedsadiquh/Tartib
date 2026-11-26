@@ -17,6 +17,11 @@
           "type": "json",
           "path": "web/package.json",
           "jsonpath": "$.version"
+        },
+        {
+          "type": "toml",
+          "path": "backend/uv.lock",
+          "jsonpath": "$.package[?(@.name.value=='scheduler')].version"
         }
       ]
     }
