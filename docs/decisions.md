@@ -587,3 +587,28 @@ subject or the PR title (that half of D-34 stands). Breaking changes use
 - Merged history is **not** rewritten: the M0 commits keep their codes. Their intent is still
   readable from the roadmap, which is the authoritative package → change mapping.
 - Nothing enforces this (D-38), so it is review-enforced like the rest of the convention.
+
+## D-40 — release-please bumps `uv.lock` too; CI fails on a stale lock · PROPOSED (owner, 2026-11-26)
+
+`backend/uv.lock` records the distribution's own version in its `[[package]]` entry for
+`scheduler`. `release-please-config.json` bumped `backend/pyproject.toml` and
+`web/package.json` but not the lock, so every release left the lock one version behind: at
+`3a3cff8` (v0.1.0) pyproject said `0.1.0` while the lock still said `0.0.0`. The first local
+`uv run` afterwards rewrote it, so the drift surfaced as a dirty tree rather than as a failure.
+
+**Why no gate caught it.** The backend job installs with `uv sync --frozen`, which tolerates the
+mismatch — measured by bumping a copy's pyproject to `0.1.1` and watching `uv sync --frozen`
+exit 0 while installing `scheduler==0.1.1`. Only `uv lock --check` reports the drift.
+
+**Decision.** Two changes, both in this PR:
+1. `backend/uv.lock` is a release-please `extra-file` of type `toml` with
+   `jsonpath: $.package[?(@.name.value=='scheduler')].version`. The `.value` is required:
+   release-please's TOML parser tags every scalar, so the natural `@.name=='scheduler'` filter
+   matches nothing and silently no-ops (release-please#2455, #2561). Verified against
+   release-please's own `GenericToml` updater at 17.6.0: it rewrites exactly one line.
+2. The backend CI job runs `uv lock --check` before `uv sync --frozen`, so a stale lock fails
+   loudly instead of passing silently.
+
+**Naming.** The jsonpath uses `scheduler` because that is the distribution name in
+`pyproject.toml`; `tartib` is release-please's `package-name` for the tag and changelog. The two
+are deliberately different and the lock follows the distribution name.

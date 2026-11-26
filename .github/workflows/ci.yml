@@ -55,6 +55,12 @@ jobs:
           python-version: "3.15"
           enable-cache: true
 
+      - name: Lockfile matches pyproject (uv lock --check)
+        # release-please bumps backend/pyproject.toml; without this the stale
+        # uv.lock passes every other gate (uv sync --frozen tolerates it) and
+        # only shows up as a dirty tree after a release. See D-40.
+        run: uv lock --check
+
       - name: Install dependencies (frozen lockfile)
         run: uv sync --frozen
 
