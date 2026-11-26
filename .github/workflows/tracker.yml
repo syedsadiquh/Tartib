@@ -7,7 +7,10 @@ name: Tracker
 
 on:
   pull_request:
-    types: [opened, edited, reopened, synchronize, ready_for_review]
+    # `labeled` so adding `no-issue` after a failed run clears it without a
+    # manual re-run; without it the escape hatch only works if the label is set
+    # before the first run.
+    types: [opened, edited, reopened, synchronize, ready_for_review, labeled]
 
 permissions:
   contents: read
@@ -30,6 +33,10 @@ jobs:
       - name: Sync the area label and the milestone
         env:
           GH_TOKEN: ${{ github.token }}
+          # gh infers the repo from the working directory's git remote. This job
+          # never checks out, so without GH_REPO every `gh pr edit` dies with
+          # "fatal: not a git repository".
+          GH_REPO: ${{ github.repository }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
           TITLE: ${{ github.event.pull_request.title }}
